@@ -1,0 +1,1 @@
+export { main } from "./lib/packager.ts";
