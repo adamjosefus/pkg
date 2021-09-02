@@ -28,6 +28,9 @@ export class Arguments {
     }[] = [];
 
 
+    private desciprion: string | null = null;
+
+
     constructor(...expectations: ExpectationType[]) {
         this.expectations = this.createExpectations(expectations)
 
@@ -88,8 +91,13 @@ export class Arguments {
     }
 
 
+    setDescription(description: string) {
+        this.desciprion = description;
+    }
+
+
     getHelpMessage(): string {
-        return this.expectations.map(ex => {
+        const docs = this.expectations.map(ex => {
             const names = ex.names.map(n => `--${n}`).join(', ')
 
             const lines = [];
@@ -101,6 +109,10 @@ export class Arguments {
 
             return ['', ...lines, ''].join('\n');
         }).join('\n');
+
+        return [this.desciprion ?? '', docs]
+            .filter(s => s !== '')
+            .join('\n');
     }
 
 
