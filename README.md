@@ -1,19 +1,19 @@
-# Packager 📦
+# PKG 📦
 
 Nástroj na správu balíčků (repozitářů), na kterých je závislá vaše aplikace.
 
 ```bash
 # Raw Deno
-deno --unstable run --allow-read=. --allow-write=. --allow-run=git mod.ts --config=lib/packager.json --help
+deno --unstable run -a main.ts --config=lib/pkg.json --help
 
 
 # Compiled Deno
-./packager --help
+./pkg --help
 ```
 
 ```bash
   --config, --c
-        Cesta na konfugurační soubor s balíčky. Výchozí hodnota je "./packager.json"
+        Cesta na konfugurační soubor s balíčky. Výchozí hodnota je "./pkg.json"
 
 
   --install, --i
