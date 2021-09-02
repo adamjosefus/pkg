@@ -121,7 +121,7 @@ const runCommand = async (...cmd: any[]) => {
 
     const status = await process.status();
 
-    const output = await(async (ok) => {
+    const output = await (async (ok) => {
         if (ok) return await process.output()
         else return await process.stderrOutput()
     })(status.success);
@@ -135,7 +135,15 @@ const runCommand = async (...cmd: any[]) => {
 }
 
 
-const clone = async (config: PackageListType) => {
+function padRight(s: string, all: string[]): string {    
+    const length = all.sort((a, b) => b.length - a.length)[0].length;
+
+    return `${s}${Array(length - s.length + 1).join(' ')}`;
+}
+
+
+
+const clone = async (list: PackageListType) => {
     function createTask(path: string, reference: string, branch: string | null) {
         const task: string[] = [];
 
@@ -153,25 +161,40 @@ const clone = async (config: PackageListType) => {
         return task;
     }
 
+    const allRepositories = list.map(x => x.repository);
+
+    console.log('\n');
 
     // Run tasks
-    for (const item of config) {
+    for (const item of list) {
         const cmd = createTask(item.path, item.repository, item.branch);
         const p = await runCommand(...cmd);
 
         if (p.success) {
-            console.log('%c' + `> ${item.name}: Clone OK`, successStyle);
-            if (p.message.trim() !== '') console.log(`> ${p.message}`);
+            console.log('%c'
+                + `> ${padRight(item.repository, allRepositories)}`
+                + '%c'
+                + `clone OK`,
+                'font-weight: bold;', successStyle
+            );
+            if (p.message.trim() !== '') console.log(`>> ${p.message}`);
 
         } else {
-            console.log('%c' + `> ${item.name}: Clone Failed`, errorStyle);
-            console.log(`> ${p.message}\n`);
+            console.log('%c'
+                + `> ${padRight(item.repository, allRepositories)} `
+                + '%c'
+                + `clone FAILED`,
+                'font-weight: bold;', errorStyle
+            );
+            console.log(`>> ${p.message}\n`);
         }
     }
+
+    console.log('\n');
 }
 
 
-const pull = async (config: PackageListType) => {
+const pull = async (list: PackageListType) => {
     function createTask(path: string) {
         const task: string[] = [];
 
@@ -182,21 +205,36 @@ const pull = async (config: PackageListType) => {
         return task;
     }
 
+    const allRepositories = list.map(x => x.repository);
+
+    console.log("\n");
 
     // Run tasks
-    for (const item of config) {
+    for (const item of list) {
         const cmd = createTask(item.path);
         const p = await runCommand(...cmd);
 
         if (p.success) {
-            console.log('%c' + `> ${item.name}: Pull OK`, successStyle);
-            if (p.message.trim() !== '') console.log(`> ${p.message}`);
+            console.log('%c'
+                + `> ${padRight(item.repository, allRepositories)}`
+                + '%c'
+                + `pull OK`,
+                'font-weight: bold;', successStyle
+            );
+            if (p.message.trim() !== '') console.log(`>> ${p.message}`);
 
         } else {
-            console.log('%c' + `> ${item.name}: Pull Failed`, errorStyle);
-            console.log(`> ${p.message}`);
+            console.log('%c'
+                + `> ${padRight(item.repository, allRepositories)} `
+                + '%c'
+                + `pull FAILED`,
+                'font-weight: bold;', errorStyle
+            );
+            console.log(`>> ${p.message}\n`);
         }
     }
+
+    console.log("\n");
 }
 
 
