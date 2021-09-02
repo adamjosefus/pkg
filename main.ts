@@ -1,6 +1,6 @@
 import { parse } from "https://deno.land/std/flags/mod.ts";
 import { existsSync } from "https://deno.land/std/fs/mod.ts";
-import { join as joinPath, basename } from "https://deno.land/std/path/mod.ts";
+import { join, basename, dirname, isAbsolute } from "https://deno.land/std/path/mod.ts";
 
 
 const successStyle = `
@@ -16,14 +16,16 @@ const errorStyle = `
 
 type ConfigFileType = {
     [repository: string]: {
-        
-    }
+        name?: string,
+        dest?: string,
+        branch?: string,
+    } | boolean,
 }
 
 
-type ConfigType = Array<{
+type PackageListType = Array<{
     name: string,
-    destination: string,
+    path: string,
     repository: string,
     branch: string | null,
 }>
@@ -37,7 +39,6 @@ class ExpectedError extends Error {
         });
         console.log('\n\n');
 
-
         super(message);
     }
 }
@@ -47,7 +48,7 @@ const getArguments = () => {
     function processConfig(path: string | null): string {
         if (path === null) throw new ExpectedError(`--config=${path}\nCesta na konfigurační soubor není platná.`);
 
-        path = joinPath(Deno.cwd(), path) as string;
+        path = join(Deno.cwd(), path) as string;
 
         if (existsSync(path) === false) throw new ExpectedError(`--config=${path}\nSoubor neexistuje.`);
 
@@ -63,7 +64,7 @@ const getArguments = () => {
     function processRoot(path: string | null): string {
         if (path === null) throw new ExpectedError(`--root=${path}\nCesta na složku kontejnerů není platná.`);
 
-        path = joinPath(Deno.cwd(), path) as string;
+        path = join(Deno.cwd(), path) as string;
 
         if (existsSync(path) === false) throw new ExpectedError(`--root=${path}\nSložka neexistuje.`);
 
@@ -75,44 +76,67 @@ const getArguments = () => {
     return {
         clone: args.clone === true,
         pull: args.pull === true,
-        configPath: processConfig(args.config ?? null),
-        root: processRoot(args.root ?? args['container-root'] ?? null),
+        config: processConfig(args.config ?? './packager.json'),
     }
 }
 
 
-const parseConfig = (json: string): ConfigType => {
-    const config: ConfigType = [];
-    const raw = JSON.parse(json) as ConfigFileType;
+const parseConfig = (json: string, root: string): PackageListType => {
+    const list: PackageListType = [];
+    const data = JSON.parse(json) as ConfigFileType;
 
-    for (const destination in raw) {
-        const value = raw[destination];
+    for (const repository in data) {
+        const value = data[repository];
+        if (value === false) break;
+        const options = value === true ? {} : value;
 
-        let repository: string;
-        let branch: string | null;
+        const name = options.name ?? basename(repository, '.git');
 
-        if (typeof value === 'string') {
-            repository = value;
-            branch = null;
-        } else {
-            repository = value[0];
-            branch = value[1] ?? null;
-        }
+        const path = (d => {
+            const p = join(d, name);
 
-        config.push({
-            name: basename(repository, '.git'),
-            destination: destination,
-            repository: repository,
-            branch: branch,
+            return isAbsolute(p) ? p : join(root, p);
+        })(options.dest ?? './');
+
+        const branch = options.branch ?? null;
+
+        list.push({
+            name,
+            path,
+            repository,
+            branch,
         });
     }
 
-    return config;
+    return list;
 }
 
 
-const clone = async (config: ConfigType, root: string) => {
-    function createTask(dest: string, reference: string, branch: string | null) {
+const runCommand = async (...cmd: any[]) => {
+    const process = Deno.run({
+        cmd,
+        stdout: "piped",
+        stderr: "piped",
+    });
+
+    const status = await process.status();
+
+    const output = await(async (ok) => {
+        if (ok) return await process.output()
+        else return await process.stderrOutput()
+    })(status.success);
+
+    const decoder = new TextDecoder();
+
+    return {
+        success: status.success,
+        message: decoder.decode(output)
+    }
+}
+
+
+const clone = async (config: PackageListType) => {
+    function createTask(path: string, reference: string, branch: string | null) {
         const task: string[] = [];
 
         task.push('git', 'clone');
@@ -123,7 +147,7 @@ const clone = async (config: ConfigType, root: string) => {
         }
 
         task.push(reference);
-        task.push(dest);
+        task.push(path);
         task.push('--single-branch');
 
         return task;
@@ -132,58 +156,27 @@ const clone = async (config: ConfigType, root: string) => {
 
     // Run tasks
     for (const item of config) {
-        const cmd = createTask(
-            joinPath(root, item.destination),
-            item.repository,
-            item.branch);
+        const cmd = createTask(item.path, item.repository, item.branch);
+        const p = await runCommand(...cmd);
 
-        const process = Deno.run({
-            cmd,
-            stdout: "piped",
-            stderr: "piped",
-        });
-
-        const status = await process.status();
-
-        const output = await (async (ok) => {
-            if (ok) return await process.output()
-            else return await process.stderrOutput()
-        })(status.success);
-
-        const decoder = new TextDecoder();
-        const message = decoder.decode(output);
-
-        if (status.success) {
+        if (p.success) {
             console.log('%c' + `> ${item.name}: Clone OK`, successStyle);
-            if (message.trim() !== '') console.log(`> ${message}`);
-            
+            if (p.message.trim() !== '') console.log(`> ${p.message}`);
+
         } else {
             console.log('%c' + `> ${item.name}: Clone Failed`, errorStyle);
-            console.log(`> ${message}`);
+            console.log(`> ${p.message}\n`);
         }
     }
-
-
-    // Git ignore
-    const gitIgnoreContent = ([
-        '# Tento soubor je generovaný. Manuálně ho neupravujte.',
-        ...config.map(item => item.destination),
-    ]).join('\n');
-
-    Deno.writeTextFileSync(
-        joinPath(root, '.gitignore'),
-        gitIgnoreContent,
-        { append: false, create: true }
-    );
 }
 
 
-const pull = async (config: ConfigType, root: string) => {
-    function createTask(dest: string) {
+const pull = async (config: PackageListType) => {
+    function createTask(path: string) {
         const task: string[] = [];
 
         task.push('git');
-        task.push('-C', dest);
+        task.push('-C', path);
         task.push('pull');
 
         return task;
@@ -192,31 +185,16 @@ const pull = async (config: ConfigType, root: string) => {
 
     // Run tasks
     for (const item of config) {
-        const cmd = createTask(joinPath(root, item.destination));
+        const cmd = createTask(item.path);
+        const p = await runCommand(...cmd);
 
-        const process = Deno.run({
-            cmd,
-            stdout: "piped",
-            stderr: "piped",
-        });
-
-        const status = await process.status();
-
-        const output = await (async (ok) => {
-            if (ok) return await process.output()
-            else return await process.stderrOutput()
-        })(status.success);
-
-        const decoder = new TextDecoder();
-        const message = decoder.decode(output);
-
-        if (status.success) {
+        if (p.success) {
             console.log('%c' + `> ${item.name}: Pull OK`, successStyle);
-            if (message.trim() !== '') console.log(`> ${message}`);
-            
+            if (p.message.trim() !== '') console.log(`> ${p.message}`);
+
         } else {
             console.log('%c' + `> ${item.name}: Pull Failed`, errorStyle);
-            console.log(`> ${message}`);
+            console.log(`> ${p.message}`);
         }
     }
 }
@@ -225,16 +203,11 @@ const pull = async (config: ConfigType, root: string) => {
 const main = async () => {
     const args = getArguments();
 
-    const configJson = Deno.readTextFileSync(args.configPath);
-    const config = parseConfig(configJson);
+    const configJson = Deno.readTextFileSync(args.config);
+    const config = parseConfig(configJson, dirname(args.config));
 
-    if (args.clone) {
-        await clone(config, args.root);
-    }
-
-    if (args.pull) {
-        await pull(config, args.root);
-    }
+    if (args.clone) await clone(config);
+    if (args.pull) await pull(config);
 }
 
 
