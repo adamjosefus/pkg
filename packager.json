@@ -1,0 +1,14 @@
+{
+    "https://github.com/tvnova-ogs/router-app.git": {
+        "dest": "router_app/content",
+        "branch": "development"
+    },
+    "https://github.com/tvnova-ogs/hub-app.git": {
+        "dest": "hub_app/content",
+        "branch": "development"
+    },
+    "https://github.com/tvnova-ogs/weather-app.git": {
+        "dest": "weather_app/content",
+        "branch": "development"
+    }
+}
