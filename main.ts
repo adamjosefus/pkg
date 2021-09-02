@@ -66,6 +66,7 @@ const getArguments = () => {
     const args = parse(Deno.args);
 
     return {
+        delete: args.delete === true,
         install: args.install === true,
         config: processConfig(args.config ?? './packager.json'),
     }
@@ -160,7 +161,7 @@ const installPackage = async (list: PackageListType, separateGitRoot: string) =>
         console.log('%c'
             + `> ${padRight(name, names)}`
             + '%c'
-            + `clone ${success ? 'OK' : 'FAILED'}`,
+            + `install ${success ? 'OK' : 'FAILED'}`,
             'font-weight: bold;',
             success ? successStyle : errorStyle
         );
@@ -169,7 +170,6 @@ const installPackage = async (list: PackageListType, separateGitRoot: string) =>
             console.log(`>> ${message}`);
         }
     }
-
 
     Deno.mkdirSync(separateGitRoot);
 
@@ -185,6 +185,40 @@ const installPackage = async (list: PackageListType, separateGitRoot: string) =>
 }
 
 
+const deletePackage = (list: PackageListType, separateGitRoot: string) => {
+    function printTask(name: string, names: string[], success: boolean, message: string) {
+        console.log('%c'
+            + `> ${padRight(name, names)}`
+            + '%c'
+            + `delete ${success ? 'OK' : 'FAILED'}`,
+            'font-weight: bold;',
+            success ? successStyle : errorStyle
+        );
+
+        if (message.trim() !== '') {
+            console.log(`>> ${message}`);
+        }
+    }
+
+    // Run tasks
+    for (const item of list) {
+        let success: boolean;
+        let message: string;
+
+        try {
+            Deno.removeSync(item.path, { recursive: true });
+            success = true;
+            message = '';
+        } catch (error) {
+            success = false;
+            message = error.toString();
+        }
+
+        printTask(item.repository, list.map(x => x.repository), success, message);
+    }
+}
+
+
 const main = async () => {
     const args = getArguments();
 
@@ -193,6 +227,19 @@ const main = async () => {
 
     const configJson = Deno.readTextFileSync(args.config);
     const config = parseConfig(configJson, root, separateGitRoot);
+
+    if (args.delete) {
+        console.log('\n');
+
+        const yes = 'y';
+        const no = 'n';
+        const decision = prompt(`Are you sure you want to delete? (${yes}/${no})`, 'n');
+
+        if (decision === yes) await deletePackage(config, separateGitRoot);
+        
+        console.log('\n');
+    }
+
 
     if (args.install) {
         console.log('\n');
