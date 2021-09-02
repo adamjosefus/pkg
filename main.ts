@@ -5,6 +5,7 @@ import { join, basename, dirname, isAbsolute } from "https://deno.land/std/path/
 
 const successStyle = `
     color: #4caf50;
+    font-weight: bold;
 `;
 
 
@@ -24,6 +25,7 @@ type ConfigFileType = {
 
 
 type PackageListType = Array<{
+    git: string,
     name: string,
     path: string,
     repository: string,
@@ -61,27 +63,16 @@ const getArguments = () => {
         return path;
     }
 
-    function processRoot(path: string | null): string {
-        if (path === null) throw new ExpectedError(`--root=${path}\nCesta na složku kontejnerů není platná.`);
-
-        path = join(Deno.cwd(), path) as string;
-
-        if (existsSync(path) === false) throw new ExpectedError(`--root=${path}\nSložka neexistuje.`);
-
-        return path;
-    }
-
     const args = parse(Deno.args);
 
     return {
-        clone: args.clone === true,
-        pull: args.pull === true,
+        install: args.install === true,
         config: processConfig(args.config ?? './packager.json'),
     }
 }
 
 
-const parseConfig = (json: string, root: string): PackageListType => {
+const parseConfig = (json: string, root: string, separateGitRoot: string): PackageListType => {
     const list: PackageListType = [];
     const data = JSON.parse(json) as ConfigFileType;
 
@@ -90,7 +81,8 @@ const parseConfig = (json: string, root: string): PackageListType => {
         if (value === false) break;
         const options = value === true ? {} : value;
 
-        const name = options.name ?? basename(repository, '.git');
+        const originalName = basename(repository, '.git');
+        const name = options.name ?? originalName;
 
         const path = (d => {
             const p = join(d, name);
@@ -101,6 +93,7 @@ const parseConfig = (json: string, root: string): PackageListType => {
         const branch = options.branch ?? null;
 
         list.push({
+            git: join(separateGitRoot, originalName),
             name,
             path,
             repository,
@@ -135,16 +128,15 @@ const runCommand = async (...cmd: any[]) => {
 }
 
 
-function padRight(s: string, all: string[]): string {    
+function padRight(s: string, all: string[]): string {
     const length = all.sort((a, b) => b.length - a.length)[0].length;
 
-    return `${s}${Array(length - s.length + 1).join(' ')}`;
+    return `${s} ${Array(length - s.length + 5 + 1).join('.')} `;
 }
 
 
-
-const clone = async (list: PackageListType) => {
-    function createTask(path: string, reference: string, branch: string | null) {
+const installPackage = async (list: PackageListType, separateGitRoot: string) => {
+    function createTask(git: string, path: string, reference: string, branch: string | null) {
         const task: string[] = [];
 
         task.push('git', 'clone');
@@ -154,6 +146,8 @@ const clone = async (list: PackageListType) => {
             task.push('--branch', branch);
         }
 
+        task.push('--separate-git-dir', git);
+
         task.push(reference);
         task.push(path);
         task.push('--single-branch');
@@ -161,91 +155,50 @@ const clone = async (list: PackageListType) => {
         return task;
     }
 
-    const allRepositories = list.map(x => x.repository);
 
-    console.log('\n');
+    function printTask(name: string, names: string[], success: boolean, message: string) {
+        console.log('%c'
+            + `> ${padRight(name, names)}`
+            + '%c'
+            + `clone ${success ? 'OK' : 'FAILED'}`,
+            'font-weight: bold;',
+            success ? successStyle : errorStyle
+        );
 
-    // Run tasks
-    for (const item of list) {
-        const cmd = createTask(item.path, item.repository, item.branch);
-        const p = await runCommand(...cmd);
-
-        if (p.success) {
-            console.log('%c'
-                + `> ${padRight(item.repository, allRepositories)}`
-                + '%c'
-                + `clone OK`,
-                'font-weight: bold;', successStyle
-            );
-            if (p.message.trim() !== '') console.log(`>> ${p.message}`);
-
-        } else {
-            console.log('%c'
-                + `> ${padRight(item.repository, allRepositories)} `
-                + '%c'
-                + `clone FAILED`,
-                'font-weight: bold;', errorStyle
-            );
-            console.log(`>> ${p.message}\n`);
+        if (message.trim() !== '') {
+            console.log(`>> ${message}`);
         }
     }
 
-    console.log('\n');
-}
 
-
-const pull = async (list: PackageListType) => {
-    function createTask(path: string) {
-        const task: string[] = [];
-
-        task.push('git');
-        task.push('-C', path);
-        task.push('pull');
-
-        return task;
-    }
-
-    const allRepositories = list.map(x => x.repository);
-
-    console.log("\n");
+    Deno.mkdirSync(separateGitRoot);
 
     // Run tasks
     for (const item of list) {
-        const cmd = createTask(item.path);
+        const cmd = createTask(item.git, item.path, item.repository, item.branch);
         const p = await runCommand(...cmd);
 
-        if (p.success) {
-            console.log('%c'
-                + `> ${padRight(item.repository, allRepositories)}`
-                + '%c'
-                + `pull OK`,
-                'font-weight: bold;', successStyle
-            );
-            if (p.message.trim() !== '') console.log(`>> ${p.message}`);
-
-        } else {
-            console.log('%c'
-                + `> ${padRight(item.repository, allRepositories)} `
-                + '%c'
-                + `pull FAILED`,
-                'font-weight: bold;', errorStyle
-            );
-            console.log(`>> ${p.message}\n`);
-        }
+        printTask(item.repository, list.map(x => x.repository), p.success, p.message);
     }
 
-    console.log("\n");
+      Deno.removeSync(separateGitRoot, { recursive: true });
 }
 
 
 const main = async () => {
     const args = getArguments();
 
-    const configJson = Deno.readTextFileSync(args.config);
-    const config = parseConfig(configJson, dirname(args.config));
+    const root = dirname(args.config);
+    const separateGitRoot = join(root, './.packager');
 
-    if (args.clone) await clone(config);
-    if (args.pull) await pull(config);
+    const configJson = Deno.readTextFileSync(args.config);
+    const config = parseConfig(configJson, root, separateGitRoot);
+
+    if (args.install) {
+        console.log('\n');
+        await installPackage(config, separateGitRoot);
+        console.log('\n');
+    }
 }
 
 
