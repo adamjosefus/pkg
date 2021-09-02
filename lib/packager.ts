@@ -38,8 +38,8 @@ const getArguments = () => {
     const args = new Arguments({
         name: 'config, c',
         description: `Cesta na konfugurační soubor s balíčky. Výchozí hodnota je "./packager.json"`,
-        processor: (path: string | null): string => {
-            if (path === null) throw new ValueException(`--config=${path}\nCesta na konfigurační soubor není platná.`);
+        processor: (path: string | null | false): string => {
+            if (path === null || path === false) throw new ValueException(`Cesta na konfigurační soubor není platná.`);
             path = join(Deno.cwd(), path) as string;
 
             if (existsSync(path) === false) {
