@@ -4,7 +4,7 @@ Nástroj na správu balíčků (repozitářů), na kterých je závislá vaše a
 
 ```bash
 # Raw Deno
-deno --unstable run -a main.ts --config=lib/pkg.json --help
+deno --unstable run --allow-all main.ts --config=pkg.json --help
 
 
 # Compiled Deno
