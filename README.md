@@ -23,3 +23,19 @@ deno --unstable run --allow-all main.ts --config=pkg.json --help
   --delete, --uninstall, --clear, --remove
         Smaže balíčky podle konfiguračního souboru.
 ```
+
+
+---
+
+
+## Kompilace spustitelného souboru
+Při kompilaci se soubor sám pojmenuje podle operačního systému.
+
+```bash
+deno run -A ./bin/compile.ts 
+```
+```bash
+Compile to /some/path/pkg/pkg.macos
+> deno --unstable compile --output=pkg.macos --allow-all ./main.ts
+> Succeed
+```
