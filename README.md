@@ -39,3 +39,16 @@ Compile to /some/path/pkg/pkg.macos
 > deno --unstable compile --output=pkg.macos --allow-all ./main.ts
 > Succeed
 ```
+
+
+
+## Bundle to jednoho javavascript souboru
+
+```bash
+deno run -A ./bin/bundle.ts.ts 
+```
+```bash
+Bundle to /some/path/pkg/pkg.bundled.js
+> deno bundle ./main.ts ./pkg.bundled.js
+> Succeed
+```
