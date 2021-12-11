@@ -66,7 +66,7 @@ const getArguments = () => {
         fallback: false
     });
 
-    args.setDescription('Verze: 1.1.1');
+    args.setDescription('Verze: 1.1.2');
 
 
     if (args.shouldHelp()) {
