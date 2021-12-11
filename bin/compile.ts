@@ -1,13 +1,21 @@
-import os from "https://deno.land/x/dos/mod.ts";
-import { join } from "https://deno.land/std@0.106.0/path/mod.ts";
+import { join } from "https://deno.land/std@0.117.0/path/mod.ts";
 
 
-const platform = os.platform() === 'darwin' ? 'mac' : os.platform();
+const name = (os => {
+    switch (os) {
+        case 'darwin':
+            return 'pkg.macos';
 
-const name = `pkg_${platform}`;
+        case 'windows':
+            return 'pkg.exe';
+
+        case 'linux':
+            return 'pkg.linux';
+    }
+})(Deno.build.os)
 const path = join(Deno.cwd(), name);
 
-const cwd = [
+const cmd = [
     `deno`,
     `--unstable`,
     `compile`,
@@ -17,12 +25,18 @@ const cwd = [
 ];
 
 console.log("\n");
-console.log("Path:", path);
-console.log(cwd.join(' '));
-console.log("\n");
+console.log(`Compile to %c${path}`, "font-weight: bold;");
+console.log(`%c> ${cmd.join(' ')}`, "color: grey");
 
-await Deno.run({
-    cmd: cwd,
+const process = await Deno.run({
+    cmd: cmd,
     stdout: 'piped',
     stderr: 'piped',
 })
+
+const { success } = await process.status();
+
+if (success) console.log(`%c> Succeed`, "color: grey");
+else console.log(`%c> Failed`, "color: grey");
+
+console.log("\n");
