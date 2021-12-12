@@ -45,7 +45,7 @@ Compile to /some/path/pkg/pkg.macos
 ## Bundle to jednoho javavascript souboru
 
 ```bash
-deno run -A ./bin/bundle.ts.ts 
+deno run -A ./bin/bundle.ts
 ```
 ```bash
 Bundle to /some/path/pkg/pkg.bundled.js
