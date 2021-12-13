@@ -6,6 +6,7 @@ const path = join(Deno.cwd(), name);
 
 const cmd = [
     `deno`,
+    `--unstable`,
     `bundle`,
     `./main.ts`,
     `./${name}`
@@ -23,7 +24,14 @@ const process = await Deno.run({
 
 const { success } = await process.status();
 
-if (success) console.log(`%c> Succeed`, "color: grey");
-else console.log(`%c> Failed`, "color: grey");
+
+if (success) {
+    console.log(`%c> Succeed`, "color: grey");
+} else {
+    const outputBytes = await process.stderrOutput()
+    const output = (new TextDecoder()).decode(outputBytes);
+    console.log(`%c> Failed`, "color: grey");
+    console.log(`%c>> ${output}`, "color: grey");
+}
 
 console.log("\n");

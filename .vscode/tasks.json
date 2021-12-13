@@ -1,0 +1,17 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "🔧 Run: Bundle to Single File",
+            "type": "shell",
+            "command": "deno run -A ./bin/bundle.ts",
+            "group": "build",
+        },
+        {
+            "label": "🔧 Run: Compile to Executable FIle",
+            "type": "shell",
+            "command": "deno run -A ./bin/compile.ts",
+            "group": "build",
+        },
+    ]
+}
