@@ -2,3 +2,4 @@ pkg.macos
 pkg.exe
 pkg.linux
 pkg.bundled.js
+!.vscode
