@@ -1,18 +1,11 @@
-import { Arguments, ValueException, HelpException } from "./packages/deno-arguments/mod.ts";
-import { existsSync } from "https://deno.land/std/fs/mod.ts";
-import { join, basename, dirname, isAbsolute } from "https://deno.land/std/path/mod.ts";
+import { Arguments, ValueException } from "./packages/deno-arguments/mod.ts";
+import { Color, Style } from "./packages/deno-ascii-office/mod.ts";
+import { existsSync } from "./exists.ts";
+import { join, basename, dirname, isAbsolute } from "https://deno.land/std@0.120.0/path/mod.ts";
 
 
-const successStyle = `
-    color: #4caf50;
-    font-weight: bold;
-`;
-
-
-const errorStyle = `
-    color: #ff4646;
-    font-weight: bold;
-`;
+const successStyle = (s: string) => Color.green(Style.bold(s));
+const errorStyle = (s: string) => Color.red(Style.bold(s));
 
 
 type ConfigFileType = {
@@ -34,39 +27,43 @@ type PackageListType = Array<{
 
 
 const getArguments = () => {
-    const args = new Arguments({
-        name: 'config, c',
-        description: `Cesta na konfugurační soubor s balíčky. Výchozí hodnota je "./pkg.json"`,
-        processor: (path: string | null | false): string => {
-            if (path === null || path === false) throw new ValueException(`Cesta na konfigurační soubor není platná.`);
-            path = join(Deno.cwd(), path) as string;
+    const args = new Arguments(
+        {
+            name: 'config, c',
+            description: `Cesta na konfugurační soubor s balíčky. Výchozí hodnota je "./pkg.json"`,
+            processor: (path: string | null | false): string => {
+                if (path === null || path === false) throw new ValueException(`Cesta na konfigurační soubor není platná.`);
+                path = join(Deno.cwd(), path) as string;
 
-            if (existsSync(path) === false) {
-                throw new ValueException(`--config=${path}\nSoubor neexistuje.`);
-            }
+                if (existsSync(path) === false) {
+                    throw new ValueException(`--config=${path}\nSoubor neexistuje.`);
+                }
 
-            try {
-                JSON.parse(Deno.readTextFileSync(path));
-            } catch (_err) {
-                throw new ValueException(`JSON konfiguračního souboru je požkozený.`);
-            }
+                try {
+                    JSON.parse(Deno.readTextFileSync(path));
+                } catch (_err) {
+                    throw new ValueException(`JSON konfiguračního souboru je požkozený.`);
+                }
 
-            return path;
+                return path;
+            },
+            fallback: "pkg.json"
         },
-        fallback: false
-    }, {
-        name: 'install, i',
-        description: `Naistaluje balíčky z konfiguračního souboru.`,
-        processor: (v: string | boolean) => v === true || v === 'true',
-        fallback: false
-    }, {
-        name: 'delete, uninstall, clear, remove',
-        description: `Smaže balíčky podle konfiguračního souboru.`,
-        processor: (v: string | boolean) => v === true || v === 'true',
-        fallback: false
-    });
+        {
+            name: 'install, i',
+            description: `Naistaluje balíčky z konfiguračního souboru.`,
+            processor: (v: string | boolean) => v === true || v === 'true',
+            fallback: false
+        },
+        {
+            name: 'delete, uninstall, clear, remove',
+            description: `Smaže balíčky podle konfiguračního souboru.`,
+            processor: (v: string | boolean) => v === true || v === 'true',
+            fallback: false
+        }
+    );
 
-    args.setDescription('Verze: 1.1.2');
+    args.setDescription('Verze: 1.1.3');
 
 
     if (args.shouldHelp()) {
@@ -138,9 +135,9 @@ const runCommand = async (...cmd: any[]) => {
 
 
 function padRight(s: string, all: string[]): string {
-    const length = all.sort((a, b) => b.length - a.length)[0].length;
+    const length = all.reduce((a, b) => Math.max(a, b.length), 0) + 5;
 
-    return `${s} ${Array(length - s.length + 5 + 1).join('.')} `;
+    return s.padEnd(length, '.');
 }
 
 
@@ -166,16 +163,13 @@ const installPackage = async (list: PackageListType, separateGitRoot: string) =>
 
 
     function printTask(name: string, names: string[], success: boolean, message: string) {
-        console.log('%c'
-            + `> ${padRight(name, names)}`
-            + '%c'
-            + `install ${success ? 'OK' : 'FAILED'}`,
-            'font-weight: bold;',
-            success ? successStyle : errorStyle
-        );
+        console.log([
+            `> ${padRight(name, names)}`,
+            success ? successStyle('install OK') : errorStyle('install FAILED'),
+        ].join(''));
 
         if (message.trim() !== '') {
-            console.log(`>> ${message}`);
+            console.log(Color.gray(`>> ${message}`));
         }
     }
 
@@ -195,16 +189,13 @@ const installPackage = async (list: PackageListType, separateGitRoot: string) =>
 
 const deletePackage = (list: PackageListType) => {
     function printTask(name: string, names: string[], success: boolean, message: string) {
-        console.log('%c'
-            + `> ${padRight(name, names)}`
-            + '%c'
-            + `delete ${success ? 'OK' : 'FAILED'}`,
-            'font-weight: bold;',
-            success ? successStyle : errorStyle
-        );
+        console.log([
+            `> ${padRight(name, names)}`,
+            success ? successStyle('delete OK') : errorStyle('delete FAILED'),
+        ].join(''));
 
         if (message.trim() !== '') {
-            console.log(`>> ${message}`);
+            console.log(Color.gray(`>> ${message}`));
         }
     }
 

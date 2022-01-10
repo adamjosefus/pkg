@@ -1,4 +1,5 @@
-import { join } from "https://deno.land/std@0.117.0/path/mod.ts";
+import { join } from "https://deno.land/std@0.120.0/path/mod.ts";
+import { Color, Style } from "../lib/packages/deno-ascii-office/mod.ts";
 
 
 const name = (os => {
@@ -25,8 +26,8 @@ const cmd = [
 ];
 
 console.log("\n");
-console.log(`Compile to %c${path}`, "font-weight: bold;");
-console.log(`%c> ${cmd.join(' ')}`, "color: grey");
+console.log(Style.bold(`Compile to %c${path}`));
+console.log(Color.gray(`> ${cmd.join(' ')}`));
 
 const process = await Deno.run({
     cmd: cmd,
@@ -34,9 +35,13 @@ const process = await Deno.run({
     stderr: 'piped',
 })
 
+
 const { success } = await process.status();
 
-if (success) console.log(`%c> Succeed`, "color: grey");
-else console.log(`%c> Failed`, "color: grey");
+if (success) {
+    console.log(Color.gray(`> Succeed`));
+} else {
+    console.log(Color.gray(`> Failed`));
+}
 
 console.log("\n");
