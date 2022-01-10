@@ -4,7 +4,7 @@ Nástroj na správu balíčků (repozitářů), na kterých je závislá vaše a
 
 ```bash
 # Raw Deno
-deno --unstable run --allow-all main.ts --config=pkg.json --help
+deno run -A main.ts --config=pkg.json --help
 
 
 # Compiled Deno
@@ -12,6 +12,8 @@ deno --unstable run --allow-all main.ts --config=pkg.json --help
 ```
 
 ```bash
+Verze: 1.1.3
+
   --config, --c
         Cesta na konfugurační soubor s balíčky. Výchozí hodnota je "./pkg.json"
 
