@@ -52,3 +52,15 @@ Bundle to /some/path/pkg/pkg.bundled.js
 > deno bundle ./main.ts ./pkg.bundled.js
 > Succeed
 ```
+
+
+
+# VS Code Settings
+Aby výstupný vhled byl nejkrásnější, nastavte ve **VS Code**:
+```json
+{
+      ...
+      "terminal.integrated.drawBoldTextInBrightColors": false,
+      ...
+}
+```
