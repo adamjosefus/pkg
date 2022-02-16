@@ -13,19 +13,5 @@
             "command": "deno run -A ./bin/compile.ts",
             "group": "build",
         },
-        {
-            "label": "📦 PKG: Install",
-            "group": "build",
-            "options": { "cwd": "${cwd}", },
-            "command": "deno",
-            "args": ["run", "-A", "./main.ts", "--c=./lib/pkg.json", "--install"]
-        },
-        {
-            "label": "📦 PKG: Delete Current",
-            "group": "build",
-            "options": { "cwd": "${cwd}", },
-            "command": "deno",
-            "args": ["run", "-A", "./main.ts", "--c=./lib/pkg.json", "--delete"]
-        },
     ]
 }
