@@ -1,5 +1,7 @@
 # PKG 📦
 
+> You need have [installed Deno](https://deno.land/#installation).
+
 A tool for managing the packages (repositories) on which your application depends. Easily and locally.
 
 ```bash
