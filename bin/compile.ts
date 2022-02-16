@@ -1,5 +1,10 @@
-import { join } from "https://deno.land/std@0.120.0/path/mod.ts";
-import { Color, Style } from "../lib/packages/deno-ascii-office/mod.ts";
+/**
+ * @copyright Copyright (c) 2022 Adam Josefus
+ */
+
+
+import { join } from "https://deno.land/std@0.125.0/path/mod.ts";
+import { gray, bold } from "https://deno.land/std@0.125.0/fmt/colors.ts";
 
 
 const name = (os => {
@@ -26,8 +31,8 @@ const cmd = [
 ];
 
 console.log("\n");
-console.log(Style.bold(`Compile to %c${path}`));
-console.log(Color.gray(`> ${cmd.join(' ')}`));
+console.log(bold(`Compile to %c${path}`));
+console.log(gray(`> ${cmd.join(' ')}`));
 
 const process = await Deno.run({
     cmd: cmd,
@@ -39,9 +44,9 @@ const process = await Deno.run({
 const { success } = await process.status();
 
 if (success) {
-    console.log(Color.gray(`> Succeed`));
+    console.log(gray(`> Succeed`));
 } else {
-    console.log(Color.gray(`> Failed`));
+    console.log(gray(`> Failed`));
 }
 
 console.log("\n");
