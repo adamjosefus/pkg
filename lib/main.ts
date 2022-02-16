@@ -1,11 +1,16 @@
-import { Arguments, ValueException } from "./packages/deno-arguments/mod.ts";
-import { Color, Style } from "./packages/deno-ascii-office/mod.ts";
+/**
+ * @copyright Copyright (c) 2022 Adam Josefus
+ */
+
+
+import { join, basename, dirname, isAbsolute } from "https://deno.land/std@0.125.0/path/mod.ts";
+import { green, red, gray, bold } from "https://deno.land/std@0.125.0/fmt/colors.ts";
+import { Arguments, ValueException } from "https://deno.land/x/allo_arguments@v4.0.1/mod.ts";
 import { existsSync } from "./exists.ts";
-import { join, basename, dirname, isAbsolute } from "https://deno.land/std@0.120.0/path/mod.ts";
 
 
-const successStyle = (s: string) => Color.green(Style.bold(s));
-const errorStyle = (s: string) => Color.red(Style.bold(s));
+const successStyle = (s: string) => green(bold(s));
+const errorStyle = (s: string) => red(bold(s));
 
 
 type ConfigFileType = {
@@ -30,40 +35,38 @@ const getArguments = () => {
     const args = new Arguments(
         {
             name: 'config, c',
-            description: `Cesta na konfugurační soubor s balíčky. Výchozí hodnota je "./pkg.json"`,
-            processor: (path: string | null | false): string => {
+            description: `Path to the package configuration file.`,
+            convertor: (path: string | null | false): string => {
                 if (path === null || path === false) throw new ValueException(`Cesta na konfigurační soubor není platná.`);
                 path = join(Deno.cwd(), path) as string;
 
                 if (existsSync(path) === false) {
-                    throw new ValueException(`--config=${path}\nSoubor neexistuje.`);
+                    throw new ValueException(`--config=${path}\nThe file does not exist.`);
                 }
 
                 try {
                     JSON.parse(Deno.readTextFileSync(path));
                 } catch (_err) {
-                    throw new ValueException(`JSON konfiguračního souboru je požkozený.`);
+                    throw new ValueException(`The JSON of the configuration file is corrupted.`);
                 }
 
                 return path;
             },
-            fallback: "pkg.json"
+            default: "pkg.json"
         },
         {
             name: 'install, i',
-            description: `Naistaluje balíčky z konfiguračního souboru.`,
-            processor: (v: string | boolean) => v === true || v === 'true',
-            fallback: false
+            description: `Installs packages from the configuration file.`,
+            convertor: (v: string | boolean) => v === true || v === 'true',
+            default: false
         },
         {
-            name: 'delete, uninstall, clear, remove',
-            description: `Smaže balíčky podle konfiguračního souboru.`,
-            processor: (v: string | boolean) => v === true || v === 'true',
-            fallback: false
+            name: 'delete, uninstall',
+            description: `Deletes packages according to the configuration file.`,
+            convertor: (v: string | boolean) => v === true || v === 'true',
+            default: false
         }
     );
-
-    args.setDescription('Verze: 1.1.3');
 
 
     if (args.shouldHelp()) {
@@ -111,6 +114,7 @@ const parseConfig = (json: string, root: string, separateGitRoot: string): Packa
 }
 
 
+// deno-lint-ignore no-explicit-any
 const runCommand = async (...cmd: any[]) => {
     const process = Deno.run({
         cmd,
@@ -169,7 +173,7 @@ const installPackage = async (list: PackageListType, separateGitRoot: string) =>
         ].join(''));
 
         if (message.trim() !== '') {
-            console.log(Color.gray(`>> ${message}`));
+            console.log(gray(`>> ${message}`));
         }
     }
 
@@ -195,7 +199,7 @@ const deletePackage = (list: PackageListType) => {
         ].join(''));
 
         if (message.trim() !== '') {
-            console.log(Color.gray(`>> ${message}`));
+            console.log(gray(`>> ${message}`));
         }
     }
 
