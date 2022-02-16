@@ -31,7 +31,7 @@ const cmd = [
 ];
 
 console.log("\n");
-console.log(bold(`Compile to %c${path}`));
+console.log(bold(`Compile to ${path}`));
 console.log(gray(`> ${cmd.join(' ')}`));
 
 const process = await Deno.run({
