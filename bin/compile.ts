@@ -23,7 +23,6 @@ const path = join(Deno.cwd(), name);
 
 const cmd = [
     `deno`,
-    `--unstable`,
     `compile`,
     `--output=${name}`,
     `--allow-all`,
