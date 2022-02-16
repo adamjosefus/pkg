@@ -5,12 +5,21 @@
 A tool for managing the packages (repositories) on which your application depends. Easily and locally.
 
 ```bash
-# Raw Deno
-deno run -A pkg.ts --config=pkg.json --help
+# Run directly
+deno run pkg.ts --config=config.json
 
+# Run bundled
+deno run pkg.bundled.js --config=config.json
 
-# Compiled Deno
-./pkg --help
+# Run compiled for macOS
+./pkg.macos --config=config.json
+
+# Run compiled for Windows
+./pkg.exe --config=config.json
+
+# Run compiled for Linux
+./pkg.linux --config=config.json
+
 ```
 
 ```bash
