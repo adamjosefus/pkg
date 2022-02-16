@@ -4,6 +4,8 @@
 
 A tool for managing the packages (repositories) on which your application depends. Easily and locally.
 
+## Run
+
 ```bash
 # Run directly
 deno run pkg.ts --config=config.json
@@ -19,6 +21,30 @@ deno run pkg.bundled.js --config=config.json
 
 # Run compiled for Linux
 ./pkg.linux --config=config.json
+
+```
+
+## Config
+
+```json
+{
+    "https://github.com/adamjosefus/pkg.git": {
+        "dest": "../packages",
+    },
+    "<repo-reference>": {
+        "dest": "<path-to-dir>",
+        "branch": "<branch-or-tag>"
+    }
+}
+```
+
+---
+
+
+## Help
+
+```bash
+deno run pkg.ts --help
 
 ```
 
