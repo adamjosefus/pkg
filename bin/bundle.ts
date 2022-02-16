@@ -12,9 +12,8 @@ const path = join(Deno.cwd(), name);
 
 const cmd = [
     `deno`,
-    `--unstable`,
     `bundle`,
-    `./main.ts`,
+    `./pkg.ts`,
     `./${name}`
 ];
 
