@@ -18,7 +18,7 @@ const cmd = [
 ];
 
 console.log("\n");
-console.log(bold(`Bundle to %c${path}`));
+console.log(bold(`Bundle to ${path}`));
 console.log(gray(`> ${cmd.join(' ')}`));
 
 const process = await Deno.run({
