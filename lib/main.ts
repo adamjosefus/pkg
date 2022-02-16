@@ -2,6 +2,7 @@
  * @copyright Copyright (c) 2022 Adam Josefus
  */
 
+
 import { join, basename, dirname, isAbsolute } from "https://deno.land/std@0.125.0/path/mod.ts";
 import { green, red, gray, bold } from "https://deno.land/std@0.125.0/fmt/colors.ts";
 import { Arguments, ValueException } from "https://deno.land/x/allo_arguments@v4.0.1/mod.ts";
@@ -34,7 +35,7 @@ const getArguments = () => {
     const args = new Arguments(
         {
             name: 'config, c',
-            description: `Path to the package configuration file. The default value is "./pkg.json"`,
+            description: `Path to the package configuration file.`,
             convertor: (path: string | null | false): string => {
                 if (path === null || path === false) throw new ValueException(`Cesta na konfigurační soubor není platná.`);
                 path = join(Deno.cwd(), path) as string;
@@ -60,7 +61,7 @@ const getArguments = () => {
             default: false
         },
         {
-            name: 'delete, uninstall, clear, remove',
+            name: 'delete, uninstall',
             description: `Deletes packages according to the configuration file.`,
             convertor: (v: string | boolean) => v === true || v === 'true',
             default: false
