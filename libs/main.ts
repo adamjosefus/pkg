@@ -5,10 +5,10 @@
 
 import { join, dirname } from "https://deno.land/std@0.126.0/path/mod.ts";
 import { Arguments, ValueException } from "https://deno.land/x/allo_arguments@v4.0.1/mod.ts";
-import { existsSync } from "./exists.ts";
-import { parseConfig } from "./parseConfig.ts";
-import { installPackages } from "./installPackages.ts";
-import { deletePackages } from "./deletePackages.ts";
+import { existsSync } from "./helpers/exists.ts";
+import { parseConfig } from "./model/parseConfig.ts";
+import { installPackages } from "./model/installPackages.ts";
+import { deletePackages } from "./model/deletePackages.ts";
 
 
 const getArguments = () => {

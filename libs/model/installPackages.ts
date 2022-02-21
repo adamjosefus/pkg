@@ -1,6 +1,11 @@
-import { ConfigType } from "./ConfigType.ts";
-import { runCommand } from "./runCommand.ts";
-import * as styles from "./styles.ts";
+/**
+ * @copyright Copyright (c) 2022 Adam Josefus
+ */
+
+
+import { ConfigType } from "../types/ConfigType.ts";
+import { runCommand } from "../helpers/runCommand.ts";
+import * as styles from "../helpers/styles.ts";
 
 
 function createTask(reference: string, tag: string | null, destinationDir: string, separatedGitDir: string): readonly string[] {

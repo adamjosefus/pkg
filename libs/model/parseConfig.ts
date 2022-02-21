@@ -4,8 +4,8 @@
 
 
 import { join, basename, isAbsolute } from "https://deno.land/std@0.126.0/path/mod.ts";
-import { ConfigSchema } from "./ConfigSchema.ts";
-import { ConfigType } from "./ConfigType.ts";
+import { ConfigSchema } from "../types/ConfigSchema.ts";
+import { ConfigType } from "../types/ConfigType.ts";
 
 
 export function parseConfig(json: string, destinationRoot: string, separateGitRoot: string): ConfigType {

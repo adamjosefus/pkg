@@ -1,5 +1,10 @@
-import { ConfigType } from "./ConfigType.ts";
-import * as styles from "./styles.ts";
+/**
+ * @copyright Copyright (c) 2022 Adam Josefus
+ */
+
+
+import { ConfigType } from "../types/ConfigType.ts";
+import * as styles from "../helpers/styles.ts";
 
 
 function print(name: string, columnLength: number, success: boolean, message: string) {
