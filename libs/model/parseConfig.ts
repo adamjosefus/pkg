@@ -17,14 +17,9 @@ const regex = {
 
 export function parseConfig(json: string, configRoot: string, separateGitRoot: string): ConfigType {
     const config: ConfigType = [];
-
     const data = JSON.parse(json) as ConfigSchema;
-
     const variables = parseVariables(configRoot, data.variables ?? {});
-    console.log(variables);
-
     const getVariable = createVariableGetter(variables);
-
     const packages = data.packages ?? {};
 
     for (const reference in packages) {
