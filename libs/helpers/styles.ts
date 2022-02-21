@@ -3,7 +3,7 @@
  */
 
 
-import { green, red, gray, bold } from "https://deno.land/std@0.126.0/fmt/colors.ts";
+import { green, red, yellow, gray, bold } from "https://deno.land/std@0.126.0/fmt/colors.ts";
 
 
 export function success(s: string) {
@@ -13,6 +13,11 @@ export function success(s: string) {
 
 export function error(s: string) {
     return red(bold(s));
+}
+
+
+export function warning(s: string) {
+    return yellow(bold(s));
 }
 
 
