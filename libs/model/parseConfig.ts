@@ -8,6 +8,7 @@ import { type ConfigSchema, type VariablesType } from "../types/ConfigSchema.ts"
 import { type ConfigType } from "../types/ConfigType.ts";
 import { makeAbsolute } from "../helpers/makeAbsolute.ts";
 import * as styles from "../helpers/styles.ts";
+import { variableFilters } from "./variableFilters.ts";
 
 
 
@@ -115,13 +116,12 @@ function apllyVariables(s: string, getVariable: (name: string) => string | undef
         if (value === undefined) return `\$${name}`;
         if (filter === undefined) return value;
 
-        switch (filter.toLowerCase()) {
-            case 'encodeURIComponent'.toLowerCase(): return encodeURIComponent(value);
-            case 'encodeURI'.toLowerCase(): return encodeURI(value);
+        const filterFunc = variableFilters.get(filter);
 
-            default:
-                console.log(styles.warning(`> Unknown filter: ${filter}`));
-                return value;
+        if (filterFunc) {
+            return filterFunc(value);
         }
+        
+        return value;
     });
 }
