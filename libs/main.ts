@@ -70,11 +70,11 @@ const getArguments = () => {
 const run = async () => {
     const args = getArguments();
 
-    const root = dirname(args.config);
-    const separateGitRoot = join(root, './.pkg');
+    const configRoot = dirname(args.config);
+    const separateGitRoot = join(configRoot, './.pkg');
 
     const configJson = Deno.readTextFileSync(args.config);
-    const config = parseConfig(configJson, root, separateGitRoot);
+    const config = parseConfig(configJson, configRoot, separateGitRoot);
 
 
     // console.log(config);
