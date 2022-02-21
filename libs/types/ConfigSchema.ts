@@ -3,9 +3,9 @@
  */
 
 
-type VariablesType = Record<string, string | {
+export type VariablesType = Record<string, string | {
     from: string,
-}> | string;
+}>;
 
 
 type PackageType = {
