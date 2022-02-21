@@ -76,10 +76,6 @@ const run = async () => {
     const configJson = Deno.readTextFileSync(args.config);
     const config = parseConfig(configJson, configRoot, separateGitRoot);
 
-
-    // console.log(config);
-    
-
     if (args.delete) {
         console.log('\n');
 

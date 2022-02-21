@@ -7,9 +7,7 @@ import { join, basename } from "https://deno.land/std@0.126.0/path/mod.ts";
 import { type ConfigSchema, type VariablesType } from "../types/ConfigSchema.ts";
 import { type ConfigType } from "../types/ConfigType.ts";
 import { makeAbsolute } from "../helpers/makeAbsolute.ts";
-import * as styles from "../helpers/styles.ts";
 import { variableFilters } from "./variableFilters.ts";
-
 
 
 const regex = {
@@ -42,13 +40,11 @@ export function parseConfig(json: string, configRoot: string, separateGitRoot: s
 
         const remoteName = basename(reference, '.git');
         const localName = options.name ?? remoteName;
-
         const destinationDir = (d => {
             return makeAbsolute(configRoot, join(d, localName));
         })(options.destination ?? data.destination ?? './');
 
         const separatedGitDir = join(separateGitRoot, remoteName);
-
         const tag = options.tag ?? null;
 
         config.push({
@@ -60,8 +56,6 @@ export function parseConfig(json: string, configRoot: string, separateGitRoot: s
             separatedGitDir: apllyVariables(separatedGitDir, getVariable),
         });
     }
-
-    console.log(config);
 
     return config;
 }
