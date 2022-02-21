@@ -55,6 +55,9 @@ export function parseConfig(json: string, destinationRoot: string, separateGitRo
 
 
 function createDisplayReference(s: string): string {
-    // TODO: Hide auth credentials
-    return s;
+    const authenticationReplacer = /^(?<protocol>https?:\/\/)(?<username>.+?)\:(?<password>.+?)@/i;
+
+    return s.replace(authenticationReplacer, (_match, protocol, username, _password) => {
+        return `${protocol}${username}:●●●●●@`;
+    });
 }

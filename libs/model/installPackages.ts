@@ -50,7 +50,7 @@ export async function installPackages(config: ConfigType, separateGitRoot: strin
         const cmd = createTask(item.reference, item.tag, item.destinationDir, item.separatedGitDir);
         const p = await runCommand(...cmd);
 
-        print(item.reference, length + 5, p.success, p.message);
+        print(item.displayReference, length + 5, p.success, p.message);
     }
 
     Deno.removeSync(separateGitRoot, { recursive: true });

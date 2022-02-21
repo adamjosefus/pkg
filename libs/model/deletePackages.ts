@@ -37,6 +37,6 @@ export async function deletePackages(config: ConfigType): Promise<void> {
             message = error.toString();
         }
 
-        print(item.reference, length + 5, success, message);
+        print(item.displayReference, length + 5, success, message);
     }
 }
