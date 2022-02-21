@@ -1,5 +1,7 @@
 {
+    "destination": "./packages",
     "packages": {
-        "https://github.com/adamjosefus/allo_responses.git": {}
+        "https://username:password@github.com/adamjosefus/allo_responses.git": {
+        }
     }
 }

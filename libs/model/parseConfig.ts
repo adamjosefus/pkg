@@ -17,7 +17,7 @@ export function parseConfig(json: string, destinationRoot: string, separateGitRo
 
     for (const reference in packages) {
         const options = (v => {
-            if (typeof v  === "boolean") {
+            if (typeof v === "boolean") {
                 return v ? {} : null
             } else {
                 return v;
@@ -28,13 +28,13 @@ export function parseConfig(json: string, destinationRoot: string, separateGitRo
 
 
         const remoteName = basename(reference, '.git');
-        
+
         const localName = options.name ?? remoteName;
 
         const destinationDir = (d => {
             const p = join(d, localName);
             return isAbsolute(p) ? p : join(destinationRoot, p);
-        })(options.destination ?? './');
+        })(options.destination ?? data.destination ?? './');
 
         const separatedGitDir = join(separateGitRoot, remoteName);
 
