@@ -3,32 +3,12 @@
  */
 
 
-import { join, basename, dirname, isAbsolute } from "https://deno.land/std@0.126.0/path/mod.ts";
-import { green, red, gray, bold } from "https://deno.land/std@0.126.0/fmt/colors.ts";
+import { join, dirname } from "https://deno.land/std@0.126.0/path/mod.ts";
 import { Arguments, ValueException } from "https://deno.land/x/allo_arguments@v4.0.1/mod.ts";
 import { existsSync } from "./exists.ts";
-
-
-const successStyle = (s: string) => green(bold(s));
-const errorStyle = (s: string) => red(bold(s));
-
-
-type ConfigFileType = {
-    [repository: string]: {
-        name?: string,
-        dest?: string,
-        branch?: string,
-    } | boolean,
-}
-
-
-type PackageListType = Array<{
-    git: string,
-    name: string,
-    path: string,
-    repository: string,
-    branch: string | null,
-}>
+import { parseConfig } from "./parseConfig.ts";
+import { installPackages } from "./installPackages.ts";
+import { deletePackages } from "./deletePackages.ts";
 
 
 const getArguments = () => {
@@ -65,159 +45,24 @@ const getArguments = () => {
             description: `Deletes packages according to the configuration file.`,
             convertor: (v: string | boolean) => v === true || v === 'true',
             default: false
+        },
+        {
+            name: 'force',
+            description: `If true, the script will not ask for confirmation.`,
+            convertor: (v: string | boolean) => v === true || v === 'true',
+            default: false
         }
     );
-
 
     if (args.shouldHelp()) {
         args.triggerHelpException();
     }
 
     return {
+        config: args.get<string>('config'),
         delete: args.get<boolean>('delete'),
         install: args.get<boolean>('install'),
-        config: args.get<string>('config'),
-    }
-}
-
-
-const parseConfig = (json: string, root: string, separateGitRoot: string): PackageListType => {
-    const list: PackageListType = [];
-    const data = JSON.parse(json) as ConfigFileType;
-
-    for (const repository in data) {
-        const value = data[repository];
-        if (value === false) break;
-        const options = value === true ? {} : value;
-
-        const originalName = basename(repository, '.git');
-        const name = options.name ?? originalName;
-
-        const path = (d => {
-            const p = join(d, name);
-
-            return isAbsolute(p) ? p : join(root, p);
-        })(options.dest ?? './');
-
-        const branch = options.branch ?? null;
-
-        list.push({
-            git: join(separateGitRoot, originalName),
-            name,
-            path,
-            repository,
-            branch,
-        });
-    }
-
-    return list;
-}
-
-
-// deno-lint-ignore no-explicit-any
-const runCommand = async (...cmd: any[]) => {
-    const process = Deno.run({
-        cmd,
-        stdout: "piped",
-        stderr: "piped",
-    });
-
-    const status = await process.status();
-
-    const output = await (async (ok) => {
-        if (ok) return await process.output()
-        else return await process.stderrOutput()
-    })(status.success);
-
-    const decoder = new TextDecoder();
-
-    return {
-        success: status.success,
-        message: decoder.decode(output)
-    }
-}
-
-
-function padRight(s: string, all: string[]): string {
-    const length = all.reduce((a, b) => Math.max(a, b.length), 0) + 5;
-
-    return s.padEnd(length, '.');
-}
-
-
-const installPackage = async (list: PackageListType, separateGitRoot: string) => {
-    function createTask(git: string, path: string, reference: string, branch: string | null) {
-        const task: string[] = [];
-
-        task.push('git', 'clone');
-        task.push('--depth', '1');
-
-        if (branch) {
-            task.push('--branch', branch);
-        }
-
-        task.push('--separate-git-dir', git);
-
-        task.push(reference);
-        task.push(path);
-        task.push('--single-branch');
-
-        return task;
-    }
-
-
-    function printTask(name: string, names: string[], success: boolean, message: string) {
-        console.log([
-            `> ${padRight(name, names)}`,
-            success ? successStyle('install OK') : errorStyle('install FAILED'),
-        ].join(''));
-
-        if (message.trim() !== '') {
-            console.log(gray(`>> ${message}`));
-        }
-    }
-
-    Deno.mkdirSync(separateGitRoot);
-
-    // Run tasks
-    for (const item of list) {
-        const cmd = createTask(item.git, item.path, item.repository, item.branch);
-        const p = await runCommand(...cmd);
-
-        printTask(item.repository, list.map(x => x.repository), p.success, p.message);
-    }
-
-    Deno.removeSync(separateGitRoot, { recursive: true });
-}
-
-
-const deletePackage = (list: PackageListType) => {
-    function printTask(name: string, names: string[], success: boolean, message: string) {
-        console.log([
-            `> ${padRight(name, names)}`,
-            success ? successStyle('delete OK') : errorStyle('delete FAILED'),
-        ].join(''));
-
-        if (message.trim() !== '') {
-            console.log(gray(`>> ${message}`));
-        }
-    }
-
-    // Run tasks
-    for (const item of list) {
-        let success: boolean;
-        let message: string;
-
-        try {
-            Deno.removeSync(item.path, { recursive: true });
-            success = true;
-            message = '';
-        } catch (error) {
-            success = false;
-            message = error.toString();
-        }
-
-        printTask(item.repository, list.map(x => x.repository), success, message);
+        force: args.get<boolean>('force'),
     }
 }
 
@@ -234,11 +79,15 @@ const run = async () => {
     if (args.delete) {
         console.log('\n');
 
-        const yes = 'y';
-        const no = 'n';
-        const decision = prompt(`Are you sure you want to delete? (${yes}/${no})`, 'n');
+        let confirmation = false;
+        if (!args.force) {
+            const yes = 'y';
+            const no = 'n';
 
-        if (decision === yes) await deletePackage(config);
+            confirmation = prompt(`Are you sure you want to delete? (${yes}/${no})`, 'n') === yes;
+        }
+
+        if (confirmation || args.force) await deletePackages(config);
 
         console.log('\n');
     }
@@ -246,7 +95,7 @@ const run = async () => {
 
     if (args.install) {
         console.log('\n');
-        await installPackage(config, separateGitRoot);
+        await installPackages(config, separateGitRoot);
         console.log('\n');
     }
 }
