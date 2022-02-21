@@ -3,8 +3,8 @@
  */
 
 
-import { join } from "https://deno.land/std@0.125.0/path/mod.ts";
-import { gray, bold } from "https://deno.land/std@0.125.0/fmt/colors.ts";
+import { join } from "https://deno.land/std@0.126.0/path/mod.ts";
+import { gray, bold } from "https://deno.land/std@0.126.0/fmt/colors.ts";
 
 
 const name = 'pkg.bundled.js';

@@ -3,8 +3,8 @@
  */
 
 
-import { join, basename, dirname, isAbsolute } from "https://deno.land/std@0.125.0/path/mod.ts";
-import { green, red, gray, bold } from "https://deno.land/std@0.125.0/fmt/colors.ts";
+import { join, basename, dirname, isAbsolute } from "https://deno.land/std@0.126.0/path/mod.ts";
+import { green, red, gray, bold } from "https://deno.land/std@0.126.0/fmt/colors.ts";
 import { Arguments, ValueException } from "https://deno.land/x/allo_arguments@v4.0.1/mod.ts";
 import { existsSync } from "./exists.ts";
 
