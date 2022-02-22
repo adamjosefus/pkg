@@ -60,7 +60,7 @@ deno run pkg.ts --help
 
 ```js
 {
-    "destination": <path-to-dir>, // optional
+    "destination": "<path-to-dir>", // optional
     "variables": {
         "<name>": "<value>",
         "<name>": {
