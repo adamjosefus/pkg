@@ -62,20 +62,20 @@ deno run pkg.ts --help
 {
     "destination": <path-to-dir>, // Optional
     "variables": {
-        <name>: <value>,
-        <name>: {
+        "<name>": "<value>",
+        "<name>": {
             "from": <path-to-file>
         }
     }, // Optional
     "packages": {
-        <repo-reference>: {
-            "destination": <path-to-dir> // Optional
-            "name": <name> // Optional
-            "tag": <tag> // Optional
+        "<repo-reference>": {
+            "destination": "<path-to-dir>" // Optional
+            "name": "<name>" // Optional
+            "tag": "<tag>" // Optional
             "variables": {
-                <name>: <value>,
-                <name>: {
-                    "from": <path-to-file>
+                "<name>": "<value>",
+                "<name>": {
+                    "from": "<path-to-file>"
                 }
             } // Optional
         }
