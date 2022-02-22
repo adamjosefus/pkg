@@ -67,7 +67,7 @@ deno run pkg.ts --help
             "from": "<path-to-file>"
         }
     }, // optional
-    "packages": {
+    "repositories": {
         "<repo-reference>": {
             "destination": "<path-to-dir>" // optional
             "name": "<name>" // optional
@@ -92,7 +92,7 @@ deno run pkg.ts --help
             "from": "./sercet.txt"
         }
     },
-    "packages": {
+    "repositories": {
         "https://github.com/foo.git": [
             {
                 "name": "Foo_v1",
