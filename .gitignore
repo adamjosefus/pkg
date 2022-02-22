@@ -4,3 +4,4 @@ pkg.exe
 pkg.linux
 pkg.bundled.js
 !.vscode
+.DS_Store
