@@ -1,3 +1,3 @@
-import { pkg } from "./lib/main.ts";
+import { pkg } from "./libs/main.ts";
 
 pkg();

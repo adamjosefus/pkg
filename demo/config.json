@@ -1,0 +1,18 @@
+{
+    "destination": "./packages",
+    "variables": {
+        "FOO": "my-foo",
+        "BAR": {
+            "from": "./bar.token"
+        }
+    },
+    "variables2": {
+        "FOO": "my-foo",
+        "BAR": "my-bar"
+    },
+    "packages": {
+        "https://${FOO}:password@github.com/adamjosefus/allo_responses.git": {
+            "tag": "${BAR|encodeURIComponent}"
+        }
+    }
+}
