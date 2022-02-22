@@ -28,40 +28,43 @@ const regex = {
 export function parseConfig(json: string, configRoot: string, separateGitRoot: string): ConfigType {
     const config: ConfigType = [];
     const data = JSON.parse(json) as ConfigSchema;
-    const commonVariables = crateVariables(configRoot, data.variables ?? {});
+    const commonVars = crateVariables(configRoot, data.variables ?? {});
     const packages = data.packages ?? {};
 
     for (const reference in packages) {
-        const options = (v => {
-            if (typeof v === "boolean") {
-                return v ? {} : null
-            } else {
-                return v;
-            }
+        // Normalize reference
+        const settingsArr = (v => {
+            if (v === true || v === null) return [{}];
+            if (v === false) return null;
+
+            return Array.isArray(v) ? v : [v];
         })(packages[reference]);
 
-        if (options === null) break;
+        // Skip if no settings
+        if (settingsArr === null) break;
 
-        const variables = crateVariables(configRoot, options.variables ?? {});
-        const getVariable = createVariableStore(variables, commonVariables);
+        for (const settings of settingsArr) {
+            const localVars = crateVariables(configRoot, settings.variables ?? {});
+            const getVariable = createVariableStore(localVars, commonVars);
 
-        const remoteName = basename(reference, '.git');
-        const localName = options.name ?? remoteName;
-        const destinationDir = (d => {
-            return makeAbsolute(configRoot, join(d, localName));
-        })(options.destination ?? data.destination ?? './');
+            const remoteName = basename(reference, '.git');
+            const localName = settings.name ?? remoteName;
+            const destinationDir = (d => {
+                return makeAbsolute(configRoot, join(d, localName));
+            })(settings.destination ?? data.destination ?? './');
 
-        const separatedGitDir = join(separateGitRoot, remoteName);
-        const tag = options.tag ?? null;
+            const separatedGitDir = join(separateGitRoot, remoteName);
+            const tag = settings.tag ?? null;
 
-        config.push({
-            reference: apllyVariables(reference, getVariable),
-            displayReference: createDisplayReference(apllyVariables(reference, getVariable)),
-            tag: tag ? apllyVariables(tag, getVariable) : null,
-            name: apllyVariables(localName, getVariable),
-            destinationDir: apllyVariables(destinationDir, getVariable),
-            separatedGitDir: apllyVariables(separatedGitDir, getVariable),
-        });
+            config.push({
+                reference: apllyVariables(reference, getVariable),
+                displayReference: createDisplayReference(apllyVariables(reference, getVariable)),
+                tag: tag ? apllyVariables(tag, getVariable) : null,
+                name: apllyVariables(localName, getVariable),
+                destinationDir: apllyVariables(destinationDir, getVariable),
+                separatedGitDir: apllyVariables(separatedGitDir, getVariable),
+            });
+        }
     }
 
     return config;
@@ -111,7 +114,7 @@ function createVariableStore(...declarations: Map<string, string>[]): VariableSt
         for (const declaration of declarations) {
             if (declaration.has(name)) return declaration.get(name);
         }
-        
+
         return Deno.env.get(name);
     }
 }

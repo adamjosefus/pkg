@@ -13,10 +13,10 @@ type PackageType = {
     name?: string,
     tag?: string,
     variables?: VariableDeclarationsType,
-} | boolean;
+};
 
 
-type PackageMapType = Record<string, PackageType>;
+type PackageMapType = Record<string, PackageType | PackageType[] | boolean | null>;
 
 
 export type ConfigSchema = {
