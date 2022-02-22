@@ -3,7 +3,7 @@
  */
 
 
-export type VariablesType = Record<string, string | {
+export type VariableDeclarationsType = Record<string, string | {
     from: string,
 }>;
 
@@ -12,7 +12,7 @@ type PackageType = {
     destination?: string,
     name?: string,
     tag?: string,
-    variables?: VariablesType,
+    variables?: VariableDeclarationsType,
 } | boolean;
 
 
@@ -21,6 +21,6 @@ type PackageMapType = Record<string, PackageType>;
 
 export type ConfigSchema = {
     destination?: string,
-    variables?: VariablesType,
+    variables?: VariableDeclarationsType,
     packages?: PackageMapType,
 };
