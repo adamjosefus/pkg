@@ -73,10 +73,76 @@ Deno.test("parseConfig", () => {
                 },
             ],
         },
+        {
+            label: "Test 6",
+            json: `{
+                "destination": "./subdir",
+                "repositories": {
+                    "https://github.com/my-repo.git": true
+                }
+            }`,
+            expected: [
+                {
+                    destinationDir: "/packages/subdir/my-repo",
+                    displayReference: "https://github.com/my-repo.git",
+                    name: "my-repo",
+                    reference: "https://github.com/my-repo.git",
+                    separatedGitDir: "/meta/my-repo",
+                    tag: null,
+                },
+            ],
+        },
+        {
+            label: "Test 7",
+            json: `{
+                "destination": "./subdir",
+                "repositories": {
+                    "https://github.com/my-repo.git": {
+                        "destination": "./subdir2"
+                    }
+                }
+            }`,
+            expected: [
+                {
+                    destinationDir: "/packages/subdir2/my-repo",
+                    displayReference: "https://github.com/my-repo.git",
+                    name: "my-repo",
+                    reference: "https://github.com/my-repo.git",
+                    separatedGitDir: "/meta/my-repo",
+                    tag: null,
+                },
+            ],
+        },
+        {
+            label: "Test 8",
+            json: `{
+                "destination": "./subdir",
+                "variables": {
+                    "MY_VAR": "my-value"
+                },
+                "repositories": {
+                    "https://github.com/my-repo.git": {
+                        "destination": "./subdir2/${"${MY_VAR}"}"
+                    }
+                }
+            }`,
+            expected: [
+                {
+                    destinationDir: "/packages/subdir2/my-value/my-repo",
+                    displayReference: "https://github.com/my-repo.git",
+                    name: "my-repo",
+                    reference: "https://github.com/my-repo.git",
+                    separatedGitDir: "/meta/my-repo",
+                    tag: null,
+                },
+            ],
+        },
     ];
+
 
     exercises.forEach(({ json, expected, label }) => {
         const config = parseConfig(json, configRoot, separateGitRoot);
+
         assertEquals(config, expected, label);
     });
 });
