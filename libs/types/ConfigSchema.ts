@@ -22,5 +22,5 @@ type PackageMapType = Record<string, PackageType | PackageType[] | boolean | nul
 export type ConfigSchema = {
     destination?: string,
     variables?: VariableDeclarationsType,
-    packages?: PackageMapType,
+    repositories?: PackageMapType,
 };

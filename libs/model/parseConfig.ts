@@ -29,16 +29,16 @@ export function parseConfig(json: string, configRoot: string, separateGitRoot: s
     const config: ConfigType = [];
     const data = JSON.parse(json) as ConfigSchema;
     const commonVars = crateVariables(configRoot, data.variables ?? {});
-    const packages = data.packages ?? {};
+    const repositories = data.repositories ?? {};
 
-    for (const reference in packages) {
+    for (const reference in repositories) {
         // Normalize reference
         const settingsArr = (v => {
             if (v === true || v === null) return [{}];
             if (v === false) return null;
 
             return Array.isArray(v) ? v : [v];
-        })(packages[reference]);
+        })(repositories[reference]);
 
         // Skip if no settings
         if (settingsArr === null) break;
