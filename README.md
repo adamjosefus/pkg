@@ -64,7 +64,7 @@ deno run pkg.ts --help
     "variables": {
         "<name>": "<value>",
         "<name>": {
-            "from": <path-to-file>
+            "from": "<path-to-file>"
         }
     }, // optional
     "packages": {
