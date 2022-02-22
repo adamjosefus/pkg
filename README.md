@@ -51,6 +51,11 @@ deno run pkg.ts --help
         Deletes packages according to the configuration file.
         Default value: false
 
+
+  --force
+        If true, the script will not ask for confirmation.
+        Default value: false
+
 ```
 
 
