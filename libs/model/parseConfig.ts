@@ -34,8 +34,8 @@ export function parseConfig(json: string, configRoot: string, separateGitRoot: s
     for (const reference in repositories) {
         // Normalize reference
         const settingsArr = (v => {
-            if (v === true || v === null) return [{}];
-            if (v === false) return null;
+            if (v === false || v === null) return null;
+            if (v === true) return [{}];
 
             return Array.isArray(v) ? v : [v];
         })(repositories[reference]);
