@@ -9,6 +9,10 @@ Deno.test("parseConfig", () => {
 
     const exercises = [
         {
+            json: `{}`,
+            expected: [],
+        },
+        {
             json: `{
                 "repositories": {
                     "https://github.com/my-repo.git": {
@@ -26,6 +30,22 @@ Deno.test("parseConfig", () => {
                     tag: null,
                 },
             ],
+        },
+        {
+            json: `{
+                "repositories": {
+                    "https://github.com/my-repo.git": false
+                }
+            }`,
+            expected: [],
+        },
+        {
+            json: `{
+                "repositories": {
+                    "https://github.com/my-repo.git": null
+                }
+            }`,
+            expected: [],
         },
     ];
 
