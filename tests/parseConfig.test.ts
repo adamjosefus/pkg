@@ -7,12 +7,18 @@ Deno.test("parseConfig", () => {
     const separateGitRoot = '/meta';
 
 
-    const exercises = [
+    const exercises: {
+        label: string,
+        json: string,
+        expected: unknown,
+    }[] = [
         {
+            label: "Test 1",
             json: `{}`,
             expected: [],
         },
         {
+            label: "Test 2",
             json: `{
                 "repositories": {
                     "https://github.com/my-repo.git": {
@@ -32,6 +38,7 @@ Deno.test("parseConfig", () => {
             ],
         },
         {
+            label: "Test 3",
             json: `{
                 "repositories": {
                     "https://github.com/my-repo.git": false
@@ -40,6 +47,7 @@ Deno.test("parseConfig", () => {
             expected: [],
         },
         {
+            label: "Test 4",
             json: `{
                 "repositories": {
                     "https://github.com/my-repo.git": null
@@ -47,10 +55,28 @@ Deno.test("parseConfig", () => {
             }`,
             expected: [],
         },
+        {
+            label: "Test 5",
+            json: `{
+                "repositories": {
+                    "https://github.com/my-repo.git": true
+                }
+            }`,
+            expected: [
+                {
+                    destinationDir: "/packages/my-repo",
+                    displayReference: "https://github.com/my-repo.git",
+                    name: "my-repo",
+                    reference: "https://github.com/my-repo.git",
+                    separatedGitDir: "/meta/my-repo",
+                    tag: null,
+                },
+            ],
+        },
     ];
 
-    exercises.forEach((exercise) => {
-        const config = parseConfig(exercise.json, configRoot, separateGitRoot);
-        assertEquals(config, exercise.expected);
+    exercises.forEach(({ json, expected, label }) => {
+        const config = parseConfig(json, configRoot, separateGitRoot);
+        assertEquals(config, expected, label);
     });
 });
