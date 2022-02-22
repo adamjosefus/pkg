@@ -18,8 +18,7 @@ const regex = {
 export function parseConfig(json: string, configRoot: string, separateGitRoot: string): ConfigType {
     const config: ConfigType = [];
     const data = JSON.parse(json) as ConfigSchema;
-    const variables = parseVariables(configRoot, data.variables ?? {});
-    const getVariable = createVariableGetter(variables);
+    const commonVariables = parseVariables(configRoot, data.variables ?? {});
     const packages = data.packages ?? {};
 
     for (const reference in packages) {
@@ -32,6 +31,9 @@ export function parseConfig(json: string, configRoot: string, separateGitRoot: s
         })(packages[reference]);
 
         if (options === null) break;
+
+        const variables = parseVariables(configRoot, options.variables ?? {});
+        const getVariable = createVariableGetter(variables, commonVariables);
 
         const remoteName = basename(reference, '.git');
         const localName = options.name ?? remoteName;
@@ -46,7 +48,7 @@ export function parseConfig(json: string, configRoot: string, separateGitRoot: s
             reference: apllyVariables(reference, getVariable),
             displayReference: createDisplayReference(apllyVariables(reference, getVariable)),
             tag: tag ? apllyVariables(tag, getVariable) : null,
-            name: localName,
+            name: apllyVariables(localName, getVariable),
             destinationDir: apllyVariables(destinationDir, getVariable),
             separatedGitDir: apllyVariables(separatedGitDir, getVariable),
         });
@@ -85,12 +87,13 @@ function parseVariables(root: string, list: VariablesType): Map<string, string> 
 }
 
 
-function createVariableGetter(store: Map<string, string>, useEnv = true): (name: string) => string | undefined {
+function createVariableGetter(...lists: Map<string, string>[]): (name: string) => string | undefined {
     return (name: string) => {
-        if (store.has(name)) return store.get(name);
-        if (useEnv) return Deno.env.get(name);
-
-        return undefined;
+        for (const list of lists) {
+            if (list.has(name)) return list.get(name);
+        }
+        
+        return Deno.env.get(name);
     }
 }
 
@@ -110,7 +113,7 @@ function apllyVariables(s: string, getVariable: (name: string) => string | undef
         if (filterFunc) {
             return filterFunc(value);
         }
-        
+
         return value;
     });
 }
