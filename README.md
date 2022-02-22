@@ -10,6 +10,9 @@ A tool for managing the packages (repositories) on which your application depend
 # Run directly
 deno run pkg.ts --config=config.json
 
+# Run directly from remote
+deno run https://raw.githubusercontent.com/adamjosefus/pkg/main/pkg.ts --config=config.json
+
 # Run bundled
 deno run pkg.bundled.js --config=config.json
 
@@ -23,22 +26,6 @@ deno run pkg.bundled.js --config=config.json
 ./pkg.linux --config=config.json
 
 ```
-
-## Config
-
-```json
-{
-    "https://github.com/adamjosefus/pkg.git": {
-        "dest": "../packages",
-    },
-    "<repo-reference>": {
-        "dest": "<path-to-dir>",
-        "branch": "<branch-or-tag>"
-    }
-}
-```
-
----
 
 
 ## Help
@@ -66,6 +53,62 @@ deno run pkg.ts --help
 
 ```
 
+
+## Config
+
+### Schema
+
+```js
+{
+    "destination": <path-to-dir>, // Optional
+    "variables": {
+        <name>: <value>,
+        <name>: {
+            "from": <path-to-file>
+        }
+    }, // Optional
+    "packages": {
+        <repo-reference>: {
+            "destination": <path-to-dir> // Optional
+            "name": <name> // Optional
+            "tag": <tag> // Optional
+            "variables": {
+                <name>: <value>,
+                <name>: {
+                    "from": <path-to-file>
+                }
+            } // Optional
+        }
+    }
+}
+```
+
+### Example
+```json
+{
+    "destination": "./packages",
+    "variables": {
+        "ACCESS_TOKEN": {
+            "from": "./sercet.txt"
+        }
+    },
+    "packages": {
+        "https://github.com/foo.git": [
+            {
+                "name": "Foo_v1",
+                "tag": "v1.0.0"
+            },
+            {
+                "name": "Foo_v2",
+                "tag": "v2.1.1"
+            }
+        ],
+        "https://username:${ACCESS_TOKEN}@dev.azure.com/bar": {
+            "name": "Bar"
+        }
+    }
+}
+```
 
 ---
 
