@@ -4,21 +4,31 @@
 
 
 import { join, basename } from "https://deno.land/std@0.126.0/path/mod.ts";
-import { type ConfigSchema, type VariablesType } from "../types/ConfigSchema.ts";
+import { type ConfigSchema, type VariableDeclarationsType } from "../types/ConfigSchema.ts";
 import { type ConfigType } from "../types/ConfigType.ts";
 import { makeAbsolute } from "../helpers/makeAbsolute.ts";
 import { variableFilters } from "./variableFilters.ts";
+import { VariableStoreType } from "../types/VariableStoreType.ts";
 
 
 const regex = {
-    variable: /\$\{(?<name>[A-Z_][A-Z0-9_]*)(\|(?<filter>.+?))?\}/g,
+    variableReplacer: /\$\{(?<name>[A-Z_][A-Z0-9_]*)(\|(?<filter>.+?))?\}/g,
+    authenticationReplacer: /^(?<protocol>https?:\/\/)(?<username>.+?)\:(?<password>.+?)@/i
 }
 
 
+/**
+ * Parse config file and return a config object.
+ * 
+ * @param json Content of the config file.
+ * @param configRoot Folder where the config file is located.
+ * @param separateGitRoot Meta folder where the git repository is located.
+ * @returns 
+ */
 export function parseConfig(json: string, configRoot: string, separateGitRoot: string): ConfigType {
     const config: ConfigType = [];
     const data = JSON.parse(json) as ConfigSchema;
-    const commonVariables = parseVariables(configRoot, data.variables ?? {});
+    const commonVariables = crateVariables(configRoot, data.variables ?? {});
     const packages = data.packages ?? {};
 
     for (const reference in packages) {
@@ -32,8 +42,8 @@ export function parseConfig(json: string, configRoot: string, separateGitRoot: s
 
         if (options === null) break;
 
-        const variables = parseVariables(configRoot, options.variables ?? {});
-        const getVariable = createVariableGetter(variables, commonVariables);
+        const variables = crateVariables(configRoot, options.variables ?? {});
+        const getVariable = createVariableStore(variables, commonVariables);
 
         const remoteName = basename(reference, '.git');
         const localName = options.name ?? remoteName;
@@ -58,6 +68,9 @@ export function parseConfig(json: string, configRoot: string, separateGitRoot: s
 }
 
 
+/**
+ * Transform a reference to a displayable reference. This is useful for hiding authentication information.
+ */
 function createDisplayReference(s: string): string {
     const authenticationReplacer = /^(?<protocol>https?:\/\/)(?<username>.+?)\:(?<password>.+?)@/i;
 
@@ -67,10 +80,16 @@ function createDisplayReference(s: string): string {
 }
 
 
-function parseVariables(root: string, list: VariablesType): Map<string, string> {
+/**
+ * Create a map of variables from config declarations.
+ * @param root Folder for relative paths.
+ * @param declarations 
+ * @returns 
+ */
+function crateVariables(root: string, declarations: VariableDeclarationsType): Map<string, string> {
     const variables = new Map<string, string>();
 
-    for (const [name, value] of Object.entries(list)) {
+    for (const [name, value] of Object.entries(declarations)) {
         // TODO: Check if name is valid
 
         if (typeof value === "string") {
@@ -87,10 +106,10 @@ function parseVariables(root: string, list: VariablesType): Map<string, string> 
 }
 
 
-function createVariableGetter(...lists: Map<string, string>[]): (name: string) => string | undefined {
+function createVariableStore(...declarations: Map<string, string>[]): VariableStoreType {
     return (name: string) => {
-        for (const list of lists) {
-            if (list.has(name)) return list.get(name);
+        for (const declaration of declarations) {
+            if (declaration.has(name)) return declaration.get(name);
         }
         
         return Deno.env.get(name);
@@ -98,21 +117,21 @@ function createVariableGetter(...lists: Map<string, string>[]): (name: string) =
 }
 
 
-function apllyVariables(s: string, getVariable: (name: string) => string | undefined): string {
-    regex.variable.lastIndex = 0;
-    return s.replace(regex.variable, (_match, _g1, _g2, _g3, _g4, _g5, groups) => {
+/**
+ * Apply variables to a string.
+ */
+function apllyVariables(s: string, variableStore: VariableStoreType): string {
+    regex.variableReplacer.lastIndex = 0;
+    return s.replace(regex.variableReplacer, (_match, _g1, _g2, _g3, _g4, _g5, groups) => {
         const { name, filter } = groups;
 
-        const value = getVariable(name);
+        const value = variableStore(name);
 
         if (value === undefined) return `\$${name}`;
         if (filter === undefined) return value;
 
         const filterFunc = variableFilters.get(filter);
-
-        if (filterFunc) {
-            return filterFunc(value);
-        }
+        if (filterFunc) return filterFunc(value);
 
         return value;
     });
