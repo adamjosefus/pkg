@@ -8,7 +8,7 @@
             "group": "build",
         },
         {
-            "label": "🔧 Run: Compile to Executable FIle",
+            "label": "🔧 Run: Compile to Executable File",
             "type": "shell",
             "command": "deno run -A ./bin/compile.ts",
             "group": "build",

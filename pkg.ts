@@ -1,3 +1,6 @@
-import { pkg } from "./libs/main.ts";
+import { run as runPackager } from "./src/main.ts";
 
-pkg();
+
+if (import.meta.main) {
+    await runPackager();
+}
