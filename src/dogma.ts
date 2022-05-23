@@ -25,10 +25,10 @@ export const allConfigExtensions = Object.values(ConfigExtension);
 /**
  * Current version of this program.
  */
-export const currentVersion = "2.0.3";
+export const currentVersion = "3.0.0";
 
 
 /**
  * Last supported version of configuration file which is supported by this program.
  */
-export const lastSupportedVersion = "2.0.0";
+export const lastSupportedVersion = "3.0.0";
