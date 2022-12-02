@@ -1,3 +1,5 @@
+import { filterExistPathSync } from "./filterExistPath.ts";
+
 export class Watcher extends EventTarget {
 
     #watcher: Deno.FsWatcher;
@@ -7,7 +9,7 @@ export class Watcher extends EventTarget {
 
         const paths = [path].flat().filter(s => typeof s === 'string') as string[];
 
-        this.#watcher = Deno.watchFs(paths, {
+        this.#watcher = Deno.watchFs(filterExistPathSync(paths), {
             recursive: true,
         });
 

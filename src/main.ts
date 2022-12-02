@@ -6,7 +6,7 @@ import { versionCommand } from "./commands/versionCommand.ts";
 import { computeConfigFormat } from "./model/computeConfigFormat.ts";
 import { createConfigLoader } from "./model/createConfigLoader.ts";
 import { getArguments } from "./model/getArguments.ts";
-import { Watcher } from "./model/Watcher.ts";
+import { Watcher } from "./utils/Watcher.ts";
 import { makeAbsolute } from "./utils/makeAbsolute.ts";
 
 
