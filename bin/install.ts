@@ -1,23 +1,24 @@
 /**
- * @copyright Copyright (c) 2022 Adam Josefus
+ * @author Adam Josefus
  */
 
-import { join, dirname, fromFileUrl, normalize, relative } from 'https://deno.land/std@0.138.0/path/mod.ts';
-import { gray, bold } from "https://deno.land/std@0.138.0/fmt/colors.ts";
+import { join, dirname, fromFileUrl, normalize, relative } from 'https://deno.land/std@0.152.0/path/mod.ts'
+import { gray, bold } from "https://deno.land/std@0.152.0/fmt/colors.ts"
 
 
-const __dirname = dirname(fromFileUrl(import.meta.url));
-const root = join(__dirname, '..');
+const __dirname = dirname(fromFileUrl(import.meta.url))
+const root = join(__dirname, '..')
 
-const packagerName = 'pkg.ts';
-const packagerFile = relative(Deno.cwd(), normalize(join(root, packagerName)));
+const packagerName = 'packager.ts'
+const packagerFile = relative(Deno.cwd(), normalize(join(root, packagerName)))
 
-const packageName = 'pkg';
+const packageName = 'packager'
 
 
 const cmd = [
     'deno',
     'install',
+    '-f',
     '--allow-read',
     '--allow-write',
     '--allow-env',
@@ -26,11 +27,11 @@ const cmd = [
     '--no-prompt',
     `--name=${packageName}`,
     `${packagerFile}`
-];
+]
 
-console.log("\n");
-console.log(bold(`Install "${packageName}"`));
-console.log(gray(`> ${cmd.join(' ')}`));
+console.log("\n")
+console.log(bold(`Install "${packageName}"`))
+console.log(gray(`> ${cmd.join(' ')}`))
 
 const process = await Deno.run({
     cmd: cmd,
@@ -38,12 +39,12 @@ const process = await Deno.run({
     stderr: 'piped',
 })
 
-const { success } = await process.status();
+const { success } = await process.status()
 
 if (success) {
-    console.log(gray(`> Succeed`));
+    console.log(gray(`> Succeed`))
 } else {
-    console.log(gray(`> Failed`));
+    console.log(gray(`> Failed`))
 }
 
-console.log("\n");
+console.log("\n")

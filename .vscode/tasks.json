@@ -2,16 +2,74 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "🔧 Run: Bundle to Single File",
-            "type": "shell",
-            "command": "deno run -A ./bin/bundle.ts",
-            "group": "build",
+            "label": "Bundle to Single File",
+            "command": "deno",
+            "args": [
+                "run",
+                "--allow-read",
+                "--allow-run",
+                "./bin/bundle.ts"
+            ],
+            "group": "build"
         },
         {
-            "label": "🔧 Run: Compile to Executable File",
-            "type": "shell",
-            "command": "deno run -A ./bin/compile.ts",
-            "group": "build",
+            "label": "Compile to Executable File",
+            "command": "deno",
+            "args": [
+                "run",
+                "--allow-read",
+                "--allow-run",
+                "./bin/compile.ts"
+            ],
+            "group": "build"
         },
+        {
+            "label": "Install Packager",
+            "command": "deno",
+            "args": [
+                "run",
+                "--allow-read",
+                "--allow-run",
+                "./bin/install.ts"
+            ],
+            "group": "build"
+        },
+        {
+            "label": "Uninstall Packager",
+            "command": "deno",
+            "args": [
+                "uninstall",
+                "packager"
+            ],
+            "group": "build"
+        },
+        {
+            "label": "Reinstall Packager",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Uninstall Packager",
+                "Install Packager"
+            ],
+            "command": "packager",
+            "args": [
+                "--version"
+            ],
+            "group": "build"
+        },
+        {
+            "label": "> Run Demo",
+            "command": "deno",
+            "args": [
+                "run",
+                "--allow-all",
+                "../packager.ts",
+                "--update",
+                "--force",
+            ],
+            "options": {
+                "cwd": "./demo"
+            },
+            "problemMatcher": []
+        }
     ]
 }

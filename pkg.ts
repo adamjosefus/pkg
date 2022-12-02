@@ -1,6 +1,6 @@
-import { run as runPackager } from "./src/main.ts";
+import { main } from "./src/main.ts"
 
 
 if (import.meta.main) {
-    await runPackager();
+    await main()
 }

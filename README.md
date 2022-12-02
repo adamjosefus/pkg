@@ -1,16 +1,16 @@
-# PKG 📦
+# Packager <img src="https://upload.wikimedia.org/wikipedia/commons/e/e8/Deno_2021.svg" style="width: 1em; vertical-align: text-bottom; margin: .1em .3em">
 
-PKG is a CLI tool for managing dependecies in your project.
+Packager is a CLI tool for managing dependecies in your project.
 
 No more copy/paste yours  frameworks, libraries or helpers across multiple works.
 
-
 ---
 
-
-## Agenda
 - [Installations](#installations)
 - [Config file](#config-file)
+  - [Example of config file](#example-of-config-file)
+  - [Schema of config file](#schema-of-config-file)
+  - [Properties of Config file](#properties-of-config-file)
 - [Command Line Interface](#command-line-interface)
 
 
@@ -29,7 +29,7 @@ No more copy/paste yours  frameworks, libraries or helpers across multiple works
 - Open Repository in VS Code
 - Open Command Pallete _(`Ctrl + Shift + P` / `⌘ + Shift + P`)_
     - Select → `Tasks: Run Task`
-    - Run → `Install PKG`
+    - Run → `Install Packager`
 
 
 ## Install via **Terminal**
@@ -41,14 +41,14 @@ deno install \
  --allow-run \
  --allow-net \
  --no-prompt \
- --name pkg \
- ./pkg.ts
+ --name packager \
+ ./packager.ts
 ```
 
 ## Uninstallations
 Simple!
 ```sh
-deno uninstall pkg
+deno uninstall packager
 ```
 
 
@@ -56,198 +56,18 @@ deno uninstall pkg
 
 
 
-## Config File
+# Config file
 
-In your project root folder, must exist configuration file of PKG. Name of the file must be `dependecies.jsonc` or `dependecies.json`. (JSOC is a extension for [JSON with Comments](https://www.npmjs.com/package/jsonc-parser))
+**In your project root folder** must be created Packager configuration file named  `dependecies.jsonc` or `dependecies.json`. (JSOC is a extension for [JSON with Comments](https://www.npmjs.com/package/jsonc-parser))
+You can create it by two different ways: **by hand or by command line**.
 
 
-### `version`
 
-Version property is a string that represents the version of schema.
-
-Format should be [sematic version](https://semver.org).
- - `1.0.0` is eqivalent to `v1.0.0`
- - `1.2` is eqivalent to `v1.2.0`
- - `1` is eqivalent to `v1.0.0`
- - `1.2.3.4` is eqivalent to `v1.2.3`
-
+## Example of Config file
 
 ```jsonc
 {
-  "version": "v3.0.0",
-}
-```
-
-This is a **required** property.
-
-
-### Destination
-
-Path to the folder where the dependencies will be installed. Relative to localtion of config file.
-
-Value can be `string` or `null`.
-
-```jsonc
-{
-  "destination": "./dependencies",
-}
-```
-
-
-### Repositories
-A key-value object of repositories.
-
-The key is the reference/url of the repository. Value is:
-- tag of the repository
-- specication of the repository
-- array of specifications of the repository
-
-```jsonc
-{
-    "repositories": {
-        "<repo>": "<tag>",
-        "<repo>": {
-            "destination": "<destination>",
-            "name": "<name>",
-            "tag": "<tag>",
-            "disabled": "<boolean>",
-        },
-        "<repo>": [
-            {
-                "destination": "<destination>",
-                "name": "<name>",
-                "tag": "<tag>",
-                "disabled": "<boolean>",
-            },
-            {
-                "destination": "<destination>",
-                "name": "<name>",
-                "tag": "<tag>",
-                "disabled": "<boolean>",
-            },
-            // ...
-        ],
-        // ...
-    },
-}
-```
-
-#### `destination`
-Directory where the dependency will be installed.
-If not specified, then fallback to [the common destination](#destination).
-
-```jsonc
-{
-    "destination": "<destination>",
-    "repositories": {
-        "<repo>": {
-            "destination": "<destination>",
-        }
-    }
-}
-```
-
-#### `name`
-Name of the dependency folder.
-If not specified, then fallback to name of the repository.
-
-```jsonc
-{
-    "repositories": {
-        "<repo>": {
-            "name": "<name>",
-        }
-    }
-}
-```
-
-#### `tag`
-Tag or branch of the repository.
-If not specified, then fallback to default branch of repository.
-
-```jsonc
-{
-    "repositories": {
-        "<repo>": "<tag>",
-        "<repo>": {
-            "tag": "<tag>",
-        }
-    }
-}
-```
-
-
-#### `disabled`
-Boolean value that indicates if the dependency is disabled.
-Default value is `false`.
-
-```jsonc
-{
-    "repositories": {
-        "<repo>": {
-            "disabled": "<boolean>",
-        }
-    }
-}
-```
-
-
-### Ignore
-When your project is a package, you can use `ignore` property to ignore (delete) some files or directories after installation.
-
-For specifying the files or directories, you can use [glob syntax](https://www.npmjs.com/package/glob).
-
-All path witch are pointing outside of package be ignored.
-
-```jsonc
-{
-    "ignore": [
-        "<path>",
-        "<glob>",
-        // ...
-    ]
-}
-```
-
-
-### Options
-
-```jsonc
-{
-    "options": {
-        "updateNpmConfig": false,
-        "installNpmModules": false,
-        "useGlobalTokens": false
-    }
-}
-```
-
-#### `updateNpmConfig`
-
-If `true`, then PKG update your `package.json` by dependecies of installed packages.
-
-Default value is `false`.
-
-
-#### `installNpmModules`
-
-If `true`, then PKG install NPM modules (`npm install`) after installation.
-
-Default value is `false`.
-
-
-#### `useGlobalTokens`
-
-If `true`, then PKG use global tokens.
-
-Default value is `false`.
-
----
-
-### Example of a valid configuration file
-
-```jsonc
-{
+    "version": "v2.1.3",
     "destination": "./packages",
     "repositories": {
         "https://github.com/foo.git": [
@@ -260,9 +80,7 @@ Default value is `false`.
                 "tag": "v1.4.2"
             }
         ],
-        "https://dev.azure.com/bar": {
-            "tag": "v1.0.0"
-        }
+        "https://dev.azure.com/bar": "v1.0.0"
     },
     "tokens": {
         "dev.azure.com": { "file": "./sercet.txt" }
@@ -282,21 +100,167 @@ Default value is `false`.
 ```
 
 
+## Schema of config file
+
+```ts
+{
+    "version": "<version>",
+    "destination"?: "<path-to-dir>",
+    "repositories"?: {
+        "<repo>": "<tag>",
+        "<repo>": {
+            "destination"?: "<path-to-dir>",
+            "name"?: "<name>",
+            "tag"?: "<tag>",
+            "disabled"?: "<boolean>",
+        },
+        "<repo>": [
+            {
+                "destination"?: "<path-to-dir>",
+                "name"?: "<name>",
+                "tag"?: "<tag>",
+                "disabled"?: "<boolean>",
+            },
+            // ...
+        ],
+        // ...
+    },
+    "tokens"?: {
+        "<origin>": { "file": "<path-to-secret>" },
+        "<origin>": "<secret>",
+        // ...
+    },
+    "ignore"?: [
+        "<glob-path>",
+        // ...
+    ],
+    "options"?: {
+        "updateNpmConfig"?: "<boolean>",
+        "installNpmModules"?: "<boolean>",
+        "useGlobalTokens"?: "<boolean>"
+    }
+}
+```
+
+
 ---
+
+
+## Properties of Config file
+
+### Version
+
+Version property is a string that represents the version of schema.
+
+Format should be [sematic version](https://semver.org).
+ - `1.0.0` is eqivalent to `v1.0.0`
+ - `1.2` is eqivalent to `v1.2.0`
+ - `1` is eqivalent to `v1.0.0`
+ - `1.2.3.4` is eqivalent to `v1.2.3`
+
+This is a **required** property.
+
+
+---
+
+
+### Destination
+
+Path to the folder where the dependencies will be installed. Relative to localtion of config file.
+
+Value can be `string` or `null`.
+
+
+---
+
+
+### Repositories
+A key-value object of repositories.
+
+The key is the reference/url of the repository. Value could be:
+- tag of the repository
+- specication of the repository
+- array of specifications of the repository
+
+
+#### Repo Destination
+Directory where the dependency will be installed.
+If not specified, then fallback to [the common destination](#destination).
+
+
+#### Repo Name
+Name of the dependency folder.
+If not specified, then fallback to name of the repository.
+
+
+#### Repo Tag
+Tag or branch of the repository.
+If not specified, then fallback to default branch of repository.
+
+
+#### Repo Disabled
+Boolean value that indicates if the dependency is disabled. That could be useful for debugging.
+<br> value is `false`.
+
+
+---
+
+
+### Ignore
+When your project is a package, you can use `ignore` property to ignore (delete) some files or directories after installation.
+
+For specifying the files or directories, you can use [glob syntax (`**/*`)](https://www.npmjs.com/package/glob).
+
+All path witch are pointing outside of package be skipped.
+
+
+---
+
+
+### Options
+#### Option Update NPM Config
+
+If `true`, then Packager update your `package.json` by dependecies of installed packages.
+<br>Default value is `false`.
+
+
+#### Option Install NPM Config
+
+If `true`, then Packager install NPM modules (`npm install`) after installation.
+<br>Default value is `false`.
+
+
+#### Option Use Global Tokens
+
+If `true`, then Packager use global tokens.
+<br>Default value is `false`.
+
+
+
+---
+
 
 
 # Command line Interface
 
-Desciption of the interface you can show with `pkg --help`.
+Desciption of the interface you can show with: `packager --help`.
 
 ```bash
+
+  --init
+        Initialize config file.
+        Use can specify the file extension using the "--init=json" or "--init=jsonc".
+        Stops execution.
 
   --install, --i
         Installs packages from the config file.
 
-  --uninstall, --ui
+  --uninstall
         Deletes packages according to the config file.
         Requires comfirmation.
+
+  --update, --reinstall, --u
+        Shortcut for "--uninstall" and "--install".
 
   --delete-destinations, --deldest
         Deletes the destination directory.
@@ -309,14 +273,9 @@ Desciption of the interface you can show with `pkg --help`.
         Print version.
         Stops execution.
 
-  --init
-        Initialize config file.
-        Use can specify the file extension using the "--init=json" or "--init=jsonc".
-        Stops execution.
-
   --add-global-tokens, --add-global-token
         Sets global tokens to use. (--add-global-tokens=<token>@<origin>,...)
-        Tokens will be added to the "/Users/<USER>/.deno/pkg_global_tokens.json".
+        Tokens will be added to the "/Users/<USER>/.deno/packager_global_tokens.json".
         Stops execution.
 
   --update-npm-config
@@ -334,38 +293,7 @@ Desciption of the interface you can show with `pkg --help`.
   --skip-version-check
         Disables checking the version of the config files.
 
-  --force
+  --force, --f
         If true, the script will not ask for confirmation.
 
-```
-
-
-
-
----
-
-
-## Compilation to an executable file
-During compilation, the file names itself according to the operating system.
-
-```bash
-deno run -A ./bin/compile.ts 
-```
-```bash
-Compile to /your-path/pkg.macos
-> deno compile --output=pkg.macos --allow-all ./pkg.ts
-> Succeed
-```
-
-
-
-## Bundle to a single executable js file
-
-```bash
-deno run -A ./bin/bundle.ts
-```
-```bash
-Bundle to ./your-path/pkg.js
-> deno bundle ./pkg.ts ./your-path/pkg.js
-> Succeed
 ```

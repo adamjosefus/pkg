@@ -1,30 +1,30 @@
 /**
- * @copyright Copyright (c) 2022 Adam Josefus
+ * @author Adam Josefus
  */
 
-import { join, dirname, fromFileUrl, normalize, relative } from 'https://deno.land/std@0.138.0/path/mod.ts';
-import { gray, bold } from 'https://deno.land/std@0.138.0/fmt/colors.ts';
+import { join, dirname, fromFileUrl, normalize, relative } from 'https://deno.land/std@0.152.0/path/mod.ts'
+import { gray, bold } from 'https://deno.land/std@0.152.0/fmt/colors.ts'
 
 
-const __dirname = dirname(fromFileUrl(import.meta.url));
-const root = join(__dirname, '..');
+const __dirname = dirname(fromFileUrl(import.meta.url))
+const root = join(__dirname, '..')
 
-const packagerName = 'pkg.ts';
-const outputName = 'pkg.bundled.js';
+const packagerName = 'packager.ts'
+const outputName = 'packager.bundled.js'
 
-const packagerFile = relative(Deno.cwd(), normalize(join(root, packagerName)));
-const outputFile = relative(Deno.cwd(), normalize(join(root, outputName)));
+const packagerFile = relative(Deno.cwd(), normalize(join(root, packagerName)))
+const outputFile = relative(Deno.cwd(), normalize(join(root, outputName)))
 
 const cmd = [
     `deno`,
     `bundle`,
     `${packagerFile}`,
-`${outputFile}`,
-];
+    `${outputFile}`,
+]
 
-console.log('\n');
-console.log(bold(`Bundle to ${outputName}`));
-console.log(gray(`> ${cmd.join(' ')}`));
+console.log('\n')
+console.log(bold(`Bundle to ${outputName}`))
+console.log(gray(`> ${cmd.join(' ')}`))
 
 const process = await Deno.run({
     cmd: cmd,
@@ -32,15 +32,15 @@ const process = await Deno.run({
     stderr: 'piped',
 })
 
-const { success } = await process.status();
+const { success } = await process.status()
 
 if (success) {
-    console.log(gray(`> Succeed`));
+    console.log(gray(`> Succeed`))
 } else {
     const outputBytes = await process.stderrOutput()
-    const output = (new TextDecoder()).decode(outputBytes);
-    console.log(gray(`> Failed`));
-    console.log(gray(`>> ${output}`));
+    const output = (new TextDecoder()).decode(outputBytes)
+    console.log(gray(`> Failed`))
+    console.log(gray(`>> ${output}`))
 }
 
-console.log('\n');
+console.log('\n')

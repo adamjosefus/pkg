@@ -1,68 +1,66 @@
-/**
- * @copyright Copyright (c) 2022 Adam Josefus
- */
-
-import { Arguments } from "./libs/allo_arguments.ts";
-import { loadConfigFrom } from "./model/configs/mod.ts";
-import { init } from "./commands/init.ts";
-import { install } from "./commands/install.ts";
-import { uninstall } from "./commands/uninstall.ts";
-import { deleteDestinations } from "./commands/deleteDestinations.ts";
-import { addGlobalTokens } from "./commands/addGlobalTokens.ts";
-import { getArguments } from "./getArguments.ts";
+import { Arguments } from "../libs/deno_x/allo_arguments.ts";
+import { buildCommand } from "./commands/buildCommand.ts";
+import { initCommand } from "./commands/initCommand.ts";
+import { installCommand } from "./commands/installCommand.ts";
+import { versionCommand } from "./commands/versionCommand.ts";
+import { computeConfigFormat } from "./model/computeConfigFormat.ts";
+import { createConfigLoader } from "./model/createConfigLoader.ts";
+import { getArguments } from "./model/getArguments.ts";
+import { Watcher } from "./model/Watcher.ts";
+import { makeAbsolute } from "./utils/makeAbsolute.ts";
 
 
-const main = async () => {
-    const root = Deno.cwd();
-    const args = getArguments(root);
+const packager = async () => {
+    const args = getArguments();
 
-    const needConfirmation = !args.force;
-    const checkConfigVersion = !args.skipVersionCheck;
-    const forceUseGlobalTokens = !args.forceUseGlobalTokens;
+    if (args.version) {
+        await versionCommand();
+        return;
+    }
 
-    // Init config file
     if (args.init) {
-        await init(root, args.init);
-        Deno.exit(0);
+        await initCommand();
+        return;
     }
 
-    // Save global tokens
-    if (args.addGlobalTokens.length > 0) {
-        await addGlobalTokens(root, args.addGlobalTokens);
-        Deno.exit(0);
+    const configFile = makeAbsolute(args.root ?? Deno.cwd(), args.config);
+    const configFormat = computeConfigFormat(configFile, args['config-format']);
+    const forceWatch = args.watch;
+
+    const loadConfig = createConfigLoader(configFile, configFormat);
+
+    const action = async () => {
+        const config = await loadConfig();
+
+        if (args.install) await installCommand();
+        if (args.build) await buildCommand();
     }
 
-    // Load config file
-    const config = await loadConfigFrom(root, args.tokens, {
-        useGlobalTokens: forceUseGlobalTokens,
-        checkVersion: checkConfigVersion,
-    });
+    const superWatch = async () => {
+        if (forceWatch === 1) return true;
+        if (forceWatch === -1) return false;
 
-    // Delete destinations by config
-    if (args.uninstall) {
-        await uninstall(root, config, needConfirmation);
+        const config = await loadConfig();
+        return config.watch;
     }
 
-    // Delete destinations of all dependencies
-    if (args.deleteDestinations) {
-        await deleteDestinations(root, config, needConfirmation);
-    }
+    await action();
 
-    // Install dependencies
-    if (args.install) {
-        await install(root, config, config.tokens, {
-            forceUpdateNpmConfig: args.forceUpdateNpmConfig,
-            forceInstallNpmModules: args.forceInstallNpmModules,
-            checkConfigVersion: checkConfigVersion,
+    if (await superWatch()) {
+        const config = await loadConfig();
+        const watcher = new Watcher([configFile, ...config.filesToWatch]);
+
+        watcher.addEventListener("modify", async () => {
+            await action();
         });
     }
 }
 
 
-export const run = async () => {
+export const main = async () => {
     try {
-        await main();
+        await packager();
     } catch (error) {
         Arguments.rethrowUnprintableException(error);
     }
-};
+}

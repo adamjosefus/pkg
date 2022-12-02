@@ -1,6 +1,7 @@
 .DS_Store
-pkg.macos
-pkg.exe
-pkg.linux
-pkg.bundled.js
+outputs/pkg.macos
+outputs/pkg.exe
+outputs/pkg.linux
+!outputs/pkg.js
 !.vscode
+demo/secrets/token.txt
