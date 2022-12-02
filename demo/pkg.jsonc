@@ -1,0 +1,4 @@
+{
+    "watch": true,
+    "tsconfig": ".tsconfig.json"
+}

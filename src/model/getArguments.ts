@@ -43,7 +43,7 @@ export function getArguments() {
                 'Valid formats are: .json, .jsonc, .ts, .js, .mts, .mjs',
             ].join('\n'),
             convertor: Arguments.stringConvertor,
-            default: () => 'packager.jsonc',
+            default: () => 'pkg.jsonc',
         },
         'config-format': {
             shortName: 'f',
