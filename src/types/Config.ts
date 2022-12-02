@@ -17,7 +17,7 @@ export type Config = Partial<{
     version: string,
     watch: boolean,
     outDir: string,
-    rootDir: string,
+    sourceDir: string,
     dependenciesDir: string,
     include: string[],
     exclude: string[],

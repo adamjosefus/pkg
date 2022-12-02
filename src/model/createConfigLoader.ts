@@ -1,5 +1,4 @@
 import { pipe, absurd } from "../../libs/esm/fp-ts/function.ts";
-import { dirname } from "../../libs/deno_std/path/mod.ts";
 import { JSONC } from "../../libs/esm/jsonc-parser/mod.ts";
 import { Cache } from "../../libs/deno_x/allo_caching.ts";
 import { type Config } from "../types/Config.ts";
@@ -116,10 +115,9 @@ const pickLoaderByFormat = (configFile: string, configFormat: ConfigFormat) => {
  * @param configFormat Config file format
  * @returns 
  */
-export const createConfigLoader = (configFile: string, configFormat: ConfigFormat) => {
+export const createConfigLoader = (configFile: string, configFormat: ConfigFormat, root: string) => {
     const cache = new Cache<TransformedConfig>();
     const cacheKey = configFile;
-    const configRoot = dirname(configFile);
 
     return async () => {
         if (cache.has(cacheKey)) return cache.load(cacheKey)!; // Exclamation mark is OK, because we check for existence before
@@ -127,7 +125,7 @@ export const createConfigLoader = (configFile: string, configFormat: ConfigForma
         const loader = pickLoaderByFormat(configFile, configFormat);
         const config = await pipe(
             await loader(),
-            c => transformConfig(c, configRoot),
+            c => transformConfig(c, root),
         );
 
         cache.save(cacheKey, config, {

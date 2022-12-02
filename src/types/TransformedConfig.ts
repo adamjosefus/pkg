@@ -19,7 +19,7 @@ export type TransformedConfig = Readonly<{
     version: Version<number>,
     watch: boolean,
     absOutDir: string,
-    absRootDir: string,
+    absSourceDir: string,
     build: Readonly<esbuild.BuildOptions>,
     dependencies: Readonly<Dependency[]>,
     filesToWatch: Readonly<string[]>,

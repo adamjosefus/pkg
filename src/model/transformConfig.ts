@@ -94,29 +94,29 @@ const createDependencies = (options: Config['dependencies'], installDir: string,
 /**
  * Transform source config object to a more usable internal format.
  */
-export const transformConfig = async (config: Config, configRoot: string): Promise<TransformedConfig> => {
+export const transformConfig = async (config: Config, root: string): Promise<TransformedConfig> => {
     const defaultResolveExtensions = ['.ts', '.tsx', '.mts', '.js', '.jsx', '.mjs'] as const;
 
     const defaults = {
         outDir: './build',
-        rootDir: './',
+        sourceDir: './',
         dependenciesDir: './dependencies',
         include: defaultResolveExtensions.map(ext => `**/*${ext}`),
-        exclude: [configRoot],
+        exclude: [root],
     }
 
     const version = parseVersion(config.version ?? '');
     const watch = config.watch ?? false;
-    const absOutDir = makeAbsolute(configRoot, config.outDir ?? defaults.outDir);
-    const absRootDir = makeAbsolute(configRoot, config.rootDir ?? defaults.rootDir);
-    const absDependenciesDir = makeAbsolute(configRoot, config.dependenciesDir ?? defaults.dependenciesDir);
-    const absTsconfigPath = config.tsconfig ? makeAbsolute(configRoot, config.tsconfig) : undefined;
-    const dependencies = createDependencies(config.dependencies, absDependenciesDir, configRoot);
+    const absOutDir = makeAbsolute(root, config.outDir ?? defaults.outDir);
+    const absSourceDir = makeAbsolute(root, config.sourceDir ?? defaults.sourceDir);
+    const absDependenciesDir = makeAbsolute(root, config.dependenciesDir ?? defaults.dependenciesDir);
+    const absTsconfigPath = config.tsconfig ? makeAbsolute(root, config.tsconfig) : undefined;
+    const dependencies = createDependencies(config.dependencies, absDependenciesDir, root);
     const filesToWatch = [absTsconfigPath].filter((s): s is string => s !== undefined);
 
     const include = config.include ?? defaults.include;
     const exclude = config.exclude ?? defaults.exclude;
-    const entryPoints = await createEntryPoints(absRootDir, absOutDir, include, exclude);
+    const entryPoints = await createEntryPoints(absSourceDir, absOutDir, include, exclude);
 
     const build = createBuildOptions(config.build, entryPoints, absTsconfigPath);
 
@@ -124,7 +124,7 @@ export const transformConfig = async (config: Config, configRoot: string): Promi
         version,
         watch,
         absOutDir,
-        absRootDir,
+        absSourceDir,
         build,
         dependencies,
         filesToWatch,

@@ -23,14 +23,20 @@ const packager = async () => {
         return;
     }
 
-    const configFile = makeAbsolute(args.root ?? Deno.cwd(), args.config);
+
+    const root = args.root ? makeAbsolute(Deno.cwd(), args.root) : Deno.cwd();
+    const configFile = makeAbsolute(root, args.config);
     const configFormat = computeConfigFormat(configFile, args['config-format']);
     const forceWatch = args.watch;
 
-    const loadConfig = createConfigLoader(configFile, configFormat);
+    const loadConfig = createConfigLoader(configFile, configFormat, root);
 
     const action = async () => {
         const config = await loadConfig();
+        console.log({
+            action: config,
+        });
+        
 
         if (args.install) await installCommand();
         if (args.build) await buildCommand();
