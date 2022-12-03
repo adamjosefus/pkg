@@ -1,91 +1,91 @@
-/**
- * @author Adam Josefus
- */
+// /**
+//  * @author Adam Josefus
+//  */
 
-import { bold, brightGreen as green, brightRed as red, yellow, gray } from "../../libs/colors.ts"
+// import { bold, brightGreen as green, brightRed as red, yellow, gray } from "../../libs/colors.ts"
 
-type EntryType =
-    | [text: string]
-    | [template: TemplateStringsArray, ...args: unknown[]]
-
-
-function str(...entry: EntryType): string {
-    const [text, ...args] = entry
-
-    if (typeof text === "string") return text
-
-    return text.reduce((acc, cur, i) => {
-        return acc + cur + (args[i] ?? "")
-    }, "")
-}
+// type EntryType =
+//     | [text: string]
+//     | [template: TemplateStringsArray, ...args: unknown[]]
 
 
-export const inline = {
-    warn: (...entry: EntryType) => {
-        const s = str(...entry)
-        return `${yellow(bold(s))}`
-    }
-}
+// function str(...entry: EntryType): string {
+//     const [text, ...args] = entry
+
+//     if (typeof text === "string") return text
+
+//     return text.reduce((acc, cur, i) => {
+//         return acc + cur + (args[i] ?? "")
+//     }, "")
+// }
 
 
-export const block = {
-    note: (s: string | string[]) => {
-        const lines = Array.isArray(s) ? s : s.split('\n')
-
-        const first = '  '
-        const next = Array(first.length + 1).join(' ')
-
-        const msg = lines.map((line, i) => {
-            return `${i === 0 ? first : next} ${line}`
-        }).join('\n')
-
-        return gray(msg)
-    },
-    message: (s: string | string[]) => {
-        const lines = Array.isArray(s) ? s : s.split('\n')
-
-        const first = '> '
-        const next = Array(first.length + 1).join(' ')
-
-        return lines.map((line, i) => {
-            return `${i === 0 ? gray(first) : next} ${line}`
-        }).join('\n')
-    },
-    header: (s: string) => {
-        return '\n' + bold(s)
-    },
-    process: (s: string, status: string, style: "success" | "error" | "warning") => {
-        const color = style === "success" ? green : style === "error" ? red : yellow
-
-        const dotCount = Math.max(80 - s.length, 0) + 3
-        const dosts = Array(dotCount + 1).join('.')
+// export const inline = {
+//     warn: (...entry: EntryType) => {
+//         const s = str(...entry)
+//         return `${yellow(bold(s))}`
+//     }
+// }
 
 
-        return `${gray('╶─')} ${bold(s)} ${gray(dosts)} ${color(status)}`
-    }
-}
+// export const block = {
+//     note: (s: string | string[]) => {
+//         const lines = Array.isArray(s) ? s : s.split('\n')
+
+//         const first = '  '
+//         const next = Array(first.length + 1).join(' ')
+
+//         const msg = lines.map((line, i) => {
+//             return `${i === 0 ? first : next} ${line}`
+//         }).join('\n')
+
+//         return gray(msg)
+//     },
+//     message: (s: string | string[]) => {
+//         const lines = Array.isArray(s) ? s : s.split('\n')
+
+//         const first = '> '
+//         const next = Array(first.length + 1).join(' ')
+
+//         return lines.map((line, i) => {
+//             return `${i === 0 ? gray(first) : next} ${line}`
+//         }).join('\n')
+//     },
+//     header: (s: string) => {
+//         return '\n' + bold(s)
+//     },
+//     process: (s: string, status: string, style: "success" | "error" | "warning") => {
+//         const color = style === "success" ? green : style === "error" ? red : yellow
+
+//         const dotCount = Math.max(80 - s.length, 0) + 3
+//         const dosts = Array(dotCount + 1).join('.')
 
 
-export function list(list: string[]): string {
-    const isFirst = (i: number, _arr: unknown[]) => i === 0
-    const isLast = (i: number, arr: unknown[]) => i === arr.length - 1
-    const isOnly = (i: number, _arr: unknown[]) => i === 0 && i === _arr.length - 1
+//         return `${gray('╶─')} ${bold(s)} ${gray(dosts)} ${color(status)}`
+//     }
+// }
 
-    const symbols = {
-        only: '╶─',
-        first: '┌─',
-        middle: '├─',
-        last: '└─',
-    }
 
-    return list.map((line, i, arr) => {
-        const symbol = (() => {
-            if (isOnly(i, arr)) return symbols.only
-            if (isFirst(i, arr)) return symbols.first
-            if (isLast(i, arr)) return symbols.last
-            return symbols.middle
-        })()
+// export function renderList(list: string[]): string {
+//     const isFirstIndex = (i: number, _arr: unknown[]) => i === 0;
+//     const isLastIndex = (i: number, arr: unknown[]) => i === arr.length - 1;
+//     const isOnlyIndex = (i: number, arr: unknown[]) => i === 0 && arr.length === 1;
 
-        return `${symbol} ${line}`
-    }).join('\n')
-}
+//     const symbols = {
+//         only: '╶─',
+//         first: '╭─',
+//         middle: '├─',
+//         last: '╰─',
+//     }
+
+//     return list.map((line, i, arr) => {
+//         const symbol = (() => {
+//             if (isOnlyIndex(i, arr)) return symbols.only;
+//             if (isFirstIndex(i, arr)) return symbols.first;
+//             if (isLastIndex(i, arr)) return symbols.last;
+//             return symbols.middle;
+//         })()
+
+//         return `${symbol} ${line}`
+//     }).join('\n')
+// }

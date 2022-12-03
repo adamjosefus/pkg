@@ -33,12 +33,7 @@ const packager = async () => {
 
     const action = async () => {
         const config = await loadConfig();
-        console.log({
-            action: config,
-        });
-        
-
-        if (args.install) await installCommand();
+        if (args.install) await installCommand(config);
         if (args.build) await buildCommand();
     }
 

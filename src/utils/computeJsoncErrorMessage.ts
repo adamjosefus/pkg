@@ -1,5 +1,5 @@
 import { JSONC, parseErrorReaon } from "../../libs/esm/jsonc-parser/mod.ts";
-import * as styles from "./styles.ts";
+import * as style from "./style.ts";
 
 
 /**
@@ -13,5 +13,5 @@ export const computeJsoncErrorMessage = (content: string, { error: code, offset,
     const suffix = content.substring(offset + length, Math.min(offset + length + margin, content.length));
     const line = content.substring(offset, offset + length);
 
-    return `${reason}: ${prefix}${styles.error(line)}${suffix}`;
+    return `${reason}: ${prefix}${style.error(line)}${suffix}`;
 }
