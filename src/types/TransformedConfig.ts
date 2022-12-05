@@ -6,7 +6,7 @@ type Dependency = {
     reference: string,
     absDestination: string,
     tag: string | undefined,
-    name: string | undefined,
+    name: string,
     accessTokens: string[],
 }
 

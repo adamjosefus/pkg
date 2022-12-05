@@ -9,10 +9,24 @@ import { createBuildOptions } from "./createBuildOptions.ts";
 import { loadAccessTokenValueSync } from "./loadAccessTokenValue.ts";
 
 
+const dependecyNameParser = /\/(?<name>[^\/]+?)(\.git)?$/gi;
 
 
+const computeDependecyName = (reference: string, forceName: string | undefined): string => {
+    if (forceName) return forceName;
 
-export const createEntryPoints = async (sourceDir: string, outDir: string, include: string[], exclude: string[]): Promise<string[]> => {
+    dependecyNameParser.lastIndex = 0;
+    const { name } = dependecyNameParser.exec(reference)?.groups ?? {};
+
+    if (name === undefined) {
+        throw new Error(`Failed to compute dependency name from reference: ${reference}`);
+    }
+
+    return name;
+}
+
+
+const createEntryPoints = async (sourceDir: string, outDir: string, include: string[], exclude: string[]): Promise<string[]> => {
     const globsToPaths = async (globs: string[], options: Parameters<typeof globToPaths>[1]) => {
         const paths = await Promise.all(globs.map(glob => globToPaths(glob, options)));
 
@@ -69,7 +83,7 @@ const createDependencies = (options: Config['dependencies'], installDir: string,
                     reference,
                     absDestination: installDir,
                     tag: value,
-                    name: undefined,
+                    name: computeDependecyName(reference, undefined),
                     accessTokens: [],
                 };
             }
@@ -82,7 +96,7 @@ const createDependencies = (options: Config['dependencies'], installDir: string,
                 reference,
                 absDestination: value.destination ? makeAbsolute(value.destination, installDir) : installDir,
                 tag: value.tag,
-                name: value.name,
+                name: computeDependecyName(reference, value.name),
                 accessTokens: (accessToken !== undefined) ? [accessToken] : [],
             }
         })
