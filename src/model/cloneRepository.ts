@@ -1,9 +1,8 @@
 import { relative } from "../../libs/deno_std/path/mod.ts";
-import { TransformedConfig } from "../types/TransformedConfig.ts";
-import { exec } from "../exec.ts";
+import { exec } from "../utils/exec.ts";
 
 
-const cloneRepository = async (root: string, repo: { reference: string, tag?: string, destination: string }) => {
+export const cloneRepository = async (root: string, repo: { reference: string, tag?: string, destination: string }) => {
     // Preparation
     const separatedGitDir = await Deno.makeTempDir();
 
@@ -18,13 +17,13 @@ const cloneRepository = async (root: string, repo: { reference: string, tag?: st
     cmd.push('--single-branch');
 
     // Execution
-    const { output, success } = await exec(...cmd)
+    const { output, ok } = await exec(...cmd)
 
     // Cleanup
     await Deno.remove(separatedGitDir, { recursive: true })
 
     return {
-        success,
+        ok,
         output: ((s) => {
             const real = repo.destination
             const pretty = relative(root, real)
