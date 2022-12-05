@@ -1,24 +1,34 @@
-import { relative } from "../../libs/deno_std/path/mod.ts";
 import { TransformedConfig } from "../types/TransformedConfig.ts";
-import { exec } from "../utils/exec.ts";
-import * as render from "../utils/render.ts";
+import { ProgressBar } from "../utils/ProgressBar.ts";
+import { cloneRepository } from "../model/cloneRepository.ts";
 
 
-export const installCommand = (config: TransformedConfig) => {
-    // const clearLine = "\x1b[2K\r";
-//     setInterval(() => {
-//         Deno.stdout.write(new TextEncoder().encode("X"));
-//     }, 200);
+export const installCommand = async (root: string, config: TransformedConfig) => {
+    // TODO: Check if the dependencies length is 0
+    // TODO: Check if the dependencies are already installed
 
-//     setInterval(() => {
-//         Deno.stdout.writeSync(new TextEncoder().encode(clearLine));
-//     }, 2000);
-// });
+    const waiter = new ProgressBar(config.dependencies.length);
 
-    const list = config.dependencies.map(dependency => {
-        return dependency.reference;
+    const jobs = config.dependencies.map(async dependecy => {
+        const result = await cloneRepository(root, {
+            reference: dependecy.reference,
+            branch: dependecy.tag,
+            destination: dependecy.absDestination,
+            name: dependecy.name,
+        });
+
+        waiter.updateProgress(1);
+
+        return {
+            dependecy,
+            ...result,
+        }
     });
 
-    console.log(render.list(list));
+    await waiter.setTotal(jobs.length).wait();
+
+    const result = await Promise.all(jobs);
+
+    console.log(result);
     
 }
