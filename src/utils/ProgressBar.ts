@@ -72,6 +72,8 @@ export class ProgressBar {
     setTotal(total: number) {
         this.#total = total;
         this.#fireChange();
+
+        return this;
     }
 
 
@@ -83,6 +85,8 @@ export class ProgressBar {
     setProgress(iterator: number) {
         this.#progress = iterator;
         this.#fireChange();
+
+        return this;
     }
 
 
