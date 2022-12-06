@@ -4,23 +4,24 @@ import { mapArrayToValues } from "../utils/mapArrayToValues.ts";
 import * as render from "../utils/render.ts";
 import * as style from "../utils/style.ts";
 import { cloneRepository } from "../model/cloneRepository.ts";
-import { updateLockFile } from "../model/lockFile.ts";
-import { pipe } from "../../libs/esm/fp-ts/function.ts";
+import { isDependencyAlreadyInstalled, updateLockFile } from "../model/lockFile.ts";
+import { absurd, pipe } from "../../libs/esm/fp-ts/function.ts";
 
 
-const renderSummary = (successedCount: number, failedCount: number) => {
-    const success = successedCount > 0 ? style.success : style.neutral;
-    const error = failedCount > 0 ? style.error : style.neutral;
+const renderSummary = (successedCount: number, cachedCount: number, failedCount: number) => {
+    const successed = successedCount > 0 ? style.success : style.neutral;
+    const failed = failedCount > 0 ? style.error : style.neutral;
 
-    const message = [
-        `\n`,
-        success(`Installed ${successedCount}`),
-        ` / `,
-        error(`Failed ${failedCount}`),
-        `\n`,
-    ].join('');
+    const parts: string[] = [];
+    parts.push(successed(`Installed ${successedCount}`));
 
-    console.log(message);
+    if (cachedCount > 0) {
+        parts.push(successed(`Cached ${cachedCount}`));
+    }
+
+    parts.push(failed(`Failed ${failedCount}`));
+
+    console.log(`\n${parts.join(' / ')}\n`);
 }
 
 
@@ -33,7 +34,15 @@ export const installCommand = async (root: string, config: TransformedConfig, lo
     const waiter = new ProgressBar(config.dependencies.length);
 
     const jobs = config.dependencies.map(async dependecy => {
-        const result = await cloneRepository(root, {
+        if (await isDependencyAlreadyInstalled(lockFile, dependecy)) {
+            return {
+                dependecy,
+                output: '',
+                status: 'chached' as const
+            }
+        }
+
+        const { success, output } = await cloneRepository(root, {
             reference: dependecy.reference,
             branch: dependecy.tag,
             destination: dependecy.absDestination,
@@ -42,21 +51,21 @@ export const installCommand = async (root: string, config: TransformedConfig, lo
 
         waiter.updateProgress(1);
 
-        return {
-            dependecy,
-            ...result,
-        }
+        const status = success ? 'succeeded' : 'failed';
+        return { dependecy, output, status }
     });
 
     await waiter.setTotal(jobs.length).wait();
     const results = await Promise.all(jobs);
-    const successed = results.filter(({ success }) => success);
-    const failed = results.filter(r => !successed.includes(r));
 
-    updateLockFile(lockFile, config, pipe(successed, mapArrayToValues('dependecy')));
+    const succeeded = results.filter(result => result.status === 'succeeded');
+    const failed = results.filter(result => result.status === 'failed');
+    const chached = results.filter(result => result.status === 'chached');
+
+    updateLockFile(lockFile, config, pipe(succeeded, mapArrayToValues('dependecy')));
 
     // Render
-    renderSummary(successed.length, failed.length);
+    renderSummary(succeeded.length, chached.length, failed.length);
 
     if (failed.length > 0) {
         render.botPet(`I couldn't install all the dependencies.`, 'sad');

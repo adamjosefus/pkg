@@ -62,8 +62,6 @@ const loadLockFile = async (file: string): Promise<Partial<LockFile>> => {
 }
 
 
-
-
 export const ensureLockFile = async (file: string) => {
     if (await exists(file)) return;
 
@@ -78,6 +76,12 @@ export const ensureLockFile = async (file: string) => {
     });
 }
 
+
+export const isDependencyAlreadyInstalled = async (file: string, dependency: Dependency): Promise<boolean> => {
+    const current = await loadLockFile(file);
+
+    return (current?.dependencies ?? []).some(x => isDependencySame(x, dependency));
+}
 
 
 export const updateLockFile = async (file: string, config: TransformedConfig, justInstalled: TransformedConfig['dependencies']) => {
