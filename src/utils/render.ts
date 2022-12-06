@@ -1,6 +1,7 @@
 import * as c from "../../libs/deno_std/fmt/colors.ts";
 import { pipe } from "../../libs/esm/fp-ts/function.ts";
 import { getRandomItem } from "./getRandomItem.ts";
+import { repeat } from "./repeat.ts";
 import * as style from "./style.ts";
 
 
@@ -30,12 +31,7 @@ export const cliErrorOutputs = (outputs: string[]) => {
 export const botPet = (message: string, mood: 'happy' | 'sad' | 'broken') => {
     const moodSets = {
         happy: [
-            [`●`, `◡`, `●`],
-            [`●`, `◡`, `●`],
-            [`●`, `◡`, `●`],
-            [`●`, `◡`, `●`],
-            [`●`, `◡`, `●`],
-            [`●`, `◡`, `●`],
+            ...repeat([`●`, `◡`, `●`], 5),
             [`●`, `◡`, `━`],
             [`●`, `◡`, `<`],
             [`●`, `◡`, `◄`],
@@ -43,12 +39,9 @@ export const botPet = (message: string, mood: 'happy' | 'sad' | 'broken') => {
             [`●`, `◡`, `▰`],
         ],
         sad: [
-            [`◡`, `_`, `◡`],
-            [`◡`, `_`, `◡`],
-            [`◡`, `_`, `◡`],
-            [`◡`, `.`, `◡`],
-            [`◡`, `.`, `◡`],
-            [`◡`, `.`, `◡`],
+            ...repeat([`◡`, `_`, `◡`], 3),
+            ...repeat([`◡`, `.`, `◡`], 2),
+            [`◡`, `◼︎`, `◡`],
             [`●`, `∙`, `●`],
             [`●`, `_`, `●`],
             [`◼︎`, `_`, `◼︎`],
