@@ -4,7 +4,7 @@ import { mapArrayToValues } from "../utils/mapArrayToValues.ts";
 import * as render from "../utils/render.ts";
 import * as style from "../utils/style.ts";
 import { cloneRepository } from "../model/cloneRepository.ts";
-import { updateLockFile } from "../model/updateLockFile.ts";
+import { updateLockFile } from "../model/lockFile.ts";
 import { pipe } from "../../libs/esm/fp-ts/function.ts";
 
 

@@ -1,5 +1,6 @@
 import { LockFile } from "../types/LockFile.ts";
 import { TransformedConfig } from "../types/TransformedConfig.ts";
+import { exists } from "../utils/exists.ts";
 import { prettyJson } from "../utils/prettyJson.ts";
 
 
@@ -8,6 +9,8 @@ interface Dependency {
     tag: string | null,
     name: string,
 }
+
+const createBlankLockValue = () => ({}) as const;
 
 
 const isDependencySame = (a: Dependency, b: Dependency) => {
@@ -47,11 +50,11 @@ const loadLockFile = async (file: string): Promise<Partial<LockFile>> => {
         try {
             return JSON.parse(content);
         } catch (_err) {
-            return {};
+            return createBlankLockValue();
         }
     } catch (err) {
         if (err instanceof Deno.errors.NotFound) {
-            return {};
+            return createBlankLockValue();
         }
 
         throw err;
@@ -60,13 +63,28 @@ const loadLockFile = async (file: string): Promise<Partial<LockFile>> => {
 
 
 
+
+export const ensureLockFile = async (file: string) => {
+    if (await exists(file)) return;
+
+    const content = prettyJson(createBlankLockValue());
+
+    console.log({content});
+    
+
+    await Deno.writeTextFile(file, content, {
+        create: true,
+        append: false,
+    });
+}
+
+
+
 export const updateLockFile = async (file: string, config: TransformedConfig, justInstalled: TransformedConfig['dependencies']) => {
     const current = await loadLockFile(file);
     const dependencies = createDependencies(config.dependencies, current?.dependencies ?? [], justInstalled);
-    
 
-    // const content = JSON.stringify(createData(file, config, justInstalled), null, 2);
-    const updated = null;
+    const updated = createBlankLockValue();
 
     const updatedContent = prettyJson(updated);
     const currentContent = prettyJson(current);

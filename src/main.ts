@@ -9,7 +9,7 @@ import { getArguments } from "./model/getArguments.ts";
 import { computeLockFilePath } from "./model/computeLockFilePath.ts";
 import { Watcher } from "./utils/Watcher.ts";
 import { makeAbsolute } from "./utils/makeAbsolute.ts";
-import { ensureLockFile } from "./model/ensureLockFile.ts";
+import { ensureLockFile } from "./model/lockFile.ts";
 
 
 const packager = async () => {
