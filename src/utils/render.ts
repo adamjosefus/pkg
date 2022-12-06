@@ -10,34 +10,49 @@ export const list = (list: string[]) => list.map(line => `• ${line}`).join('\n
 export const indent = (text: string, count: number) => text.split('\n').map(line => '  '.repeat(count) + line).join('\n');
 
 
-export const emptyLine = () => console.log('\n');
+export const emptyLine = () => console.log('');
 
 
 export const cliErrorOutputs = (outputs: string[]) => {
+    const { columns } = Deno.consoleSize();
+    const margin = 8;
     const label = outputs.length > 1 ? 'Errors' : 'Error';
 
     console.log(style.error(`${label}:`));
-    outputs.forEach(s => console.log(indent(s.trim() + '\n', 1)));
+    outputs.forEach(output => {
+        const s = output.trim();
+        const emptyLine = (s.length + margin) > columns ? '\n' : '';
+        console.log(indent(s + emptyLine, 1))
+    });
 }
 
 
 export const botPet = (message: string, mood: 'happy' | 'sad' | 'broken') => {
-    // const eye = `●`;
     const moodSets = {
         happy: [
             [`●`, `◡`, `●`],
             [`●`, `◡`, `●`],
             [`●`, `◡`, `●`],
+            [`●`, `◡`, `●`],
+            [`●`, `◡`, `●`],
+            [`●`, `◡`, `●`],
             [`●`, `◡`, `━`],
             [`●`, `◡`, `<`],
-            [`●`, `◡`, `━`],
+            [`●`, `◡`, `◄`],
+            [`●`, `◡`, `◀︎`],
+            [`●`, `◡`, `▰`],
         ],
         sad: [
             [`◡`, `_`, `◡`],
             [`◡`, `_`, `◡`],
+            [`◡`, `_`, `◡`],
+            [`◡`, `.`, `◡`],
+            [`◡`, `.`, `◡`],
             [`◡`, `.`, `◡`],
             [`●`, `∙`, `●`],
             [`●`, `_`, `●`],
+            [`◼︎`, `_`, `◼︎`],
+            [`◼︎`, `∙`, `◼︎`],
         ],
         broken: [
             [`X`, `.`, `X`],
