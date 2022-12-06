@@ -26,13 +26,13 @@ export const cloneRepository = async (root: string, repo: Options) => {
     cmd.push('--single-branch');
 
     // Execution
-    const { output, ok } = await exec(...cmd)
+    const { output, success } = await exec(...cmd)
 
     // Cleanup
     await Deno.remove(separatedGitDir, { recursive: true })
 
     return {
-        ok,
+        success,
         output: ((s) => {
             const real = repo.destination
             const pretty = relative(root, real)
