@@ -21,9 +21,11 @@ const renderSummary = (successedCount: number, failedCount: number) => {
 }
 
 
-export const installCommand = async (root: string, config: TransformedConfig) => {
+export const installCommand = async (root: string, config: TransformedConfig, lockFile: string) => {
     // TODO: Check if the dependencies length is 0
     // TODO: Check if the dependencies are already installed
+
+    render.commandTitle('Installing dependencies');
 
     const waiter = new ProgressBar(config.dependencies.length);
 
@@ -54,7 +56,7 @@ export const installCommand = async (root: string, config: TransformedConfig) =>
 
     if (failed.length > 0) {
         render.botPet(`I couldn't install all the dependencies.`, 'sad');
-        console.log('');
+        render.emptyLine();
         
         render.cliErrorOutputs(failed.map(({ output }) => output));
     } else {
