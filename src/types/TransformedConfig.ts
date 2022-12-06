@@ -5,7 +5,7 @@ import { Version } from "../types.ts";
 type Dependency = {
     reference: string,
     absDestination: string,
-    tag: string | undefined,
+    tag: string | null,
     name: string,
     accessTokens: string[],
 }

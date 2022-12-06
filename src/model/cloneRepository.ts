@@ -6,7 +6,7 @@ type Options = {
     reference: string,
     destination: string,
     name: string,
-    branch?: string,
+    branch?: string | null,
 }
 
 

@@ -95,7 +95,7 @@ const createDependencies = (options: Config['dependencies'], installDir: string,
             return {
                 reference,
                 absDestination: value.destination ? makeAbsolute(value.destination, installDir) : installDir,
-                tag: value.tag,
+                tag: value.tag ?? null,
                 name: computeDependecyName(reference, value.name),
                 accessTokens: (accessToken !== undefined) ? [accessToken] : [],
             }
