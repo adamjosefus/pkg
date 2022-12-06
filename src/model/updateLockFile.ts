@@ -29,14 +29,11 @@ export const createDependencies = (configDependencies: TransformedConfig['depend
         .concat(installedDependencies)
         // Sort dependencies by reference, name and tag, so that the lock file is deterministic
         .sort((a, b) => {
-            if (a.reference < b.reference) return -1;
-            if (a.reference > b.reference) return 1;
-            if (a.name < b.name) return -1;
-            if (a.name > b.name) return 1;
+            if (a.reference !== b.reference) return a.reference.localeCompare(b.reference);
+            if (a.name !== b.name) return a.name.localeCompare(b.name);
             if (a.tag === null) return -1;
             if (b.tag === null) return 1;
-            if (a.tag < b.tag) return -1;
-            if (a.tag > b.tag) return 1;
+            if (a.tag !== b.tag) return a.tag.localeCompare(b.tag);
 
             return 0;
         });
