@@ -1,8 +1,11 @@
 import { TransformedConfig } from "../types/TransformedConfig.ts";
 import { ProgressBar } from "../utils/ProgressBar.ts";
+import { mapArrayToValues } from "../utils/mapArrayToValues.ts";
 import * as render from "../utils/render.ts";
 import * as style from "../utils/style.ts";
 import { cloneRepository } from "../model/cloneRepository.ts";
+import { updateLockFile } from "../model/updateLockFile.ts";
+import { pipe } from "../../libs/esm/fp-ts/function.ts";
 
 
 const renderSummary = (successedCount: number, failedCount: number) => {
@@ -47,18 +50,23 @@ export const installCommand = async (root: string, config: TransformedConfig, lo
 
     await waiter.setTotal(jobs.length).wait();
     const results = await Promise.all(jobs);
-
-    // Render
     const successed = results.filter(({ success }) => success);
     const failed = results.filter(r => !successed.includes(r));
 
+    updateLockFile(lockFile, config, pipe(successed, mapArrayToValues('dependecy')));
+
+    // Render
     renderSummary(successed.length, failed.length);
 
     if (failed.length > 0) {
         render.botPet(`I couldn't install all the dependencies.`, 'sad');
         render.emptyLine();
-        
-        render.cliErrorOutputs(failed.map(({ output }) => output));
+
+        pipe(
+            failed,
+            mapArrayToValues('output'),
+            render.cliErrorOutputs,
+        );
     } else {
         render.botPet(`All dependencies are installed.`, 'happy');
     }
