@@ -16,7 +16,7 @@ export const exec = async (...cmd: (string | number)[]) => {
     process.close();
 
     return {
-        ok: success,
+        success,
         output: bytesToString(output).trimStart()
     }
 }
