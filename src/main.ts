@@ -9,7 +9,6 @@ import { getArguments } from "./model/getArguments.ts";
 import { computeLockFilePath } from "./model/computeLockFilePath.ts";
 import { Watcher } from "./utils/Watcher.ts";
 import { makeAbsolute } from "./utils/makeAbsolute.ts";
-import { ensureLockFile } from "./model/lockFile.ts";
 
 
 const packager = async () => {
@@ -25,14 +24,11 @@ const packager = async () => {
         return;
     }
 
-
     const root = args.root ? makeAbsolute(Deno.cwd(), args.root) : Deno.cwd();
     const configFile = makeAbsolute(root, args.config);
     const lockFile = computeLockFilePath(configFile);
     const configFormat = computeConfigFormat(configFile, args['config-format']);
     const loadConfig = createConfigLoader(configFile, configFormat, root);
-
-    await ensureLockFile(lockFile);
 
     const action = async () => {
         const config = await loadConfig();
