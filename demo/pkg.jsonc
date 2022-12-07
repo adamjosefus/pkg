@@ -3,6 +3,7 @@
     "tsconfig": ".tsconfig.json",
     "dependencies": {
         "https://github.com/kanafas/kanafas.git": "v3.1.8-beta",
-        "https://github.com/adamjosefus/allo_routing.git": "v2.2.3"
+        "https://github.com/adamjosefus/allo_routing.git": "v2.2.3",
+        "https://github.com/adamjosefus/allo_caching.git": "main"
     }
 }
