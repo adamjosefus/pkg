@@ -24,19 +24,14 @@ const isDependencySame = (a: Dependency, b: Dependency) => {
 
 export const createDependencies = (configDependencies: TransformedConfig['dependencies'], lockedDependencies: LockFile['dependencies'], installedDependencies: TransformedConfig['dependencies']): LockFile['dependencies'] => {
     return lockedDependencies
-        // Filter out dependencies that are not in the config anymore
-        .filter(x => !configDependencies.some(y => isDependencySame(x, y)))
-        // Filter out dependencies that are freshly installed
-        .filter(x => !installedDependencies.some(y => isDependencySame(x, y)))
-        // Append freshly installed dependencies
-        .concat(installedDependencies)
-        // Sort dependencies by reference, name and tag, so that the lock file is deterministic
-        .sort((a, b) => {
+        .filter(x => !configDependencies.some(y => isDependencySame(x, y))) // Filter out dependencies that are not in the config anymore
+        .filter(x => !installedDependencies.some(y => isDependencySame(x, y))) // Filter out dependencies that are freshly installed
+        .concat(installedDependencies) // Append freshly installed dependencies
+        .map(({ reference, tag, name }) => ({ reference, tag, name })) // Make sure that the dependencies are not mutated. This is important for the lock file to be deterministic
+        .sort((a, b) => { // Sort dependencies by reference, name and tag, so that the lock file is deterministic
             if (a.reference !== b.reference) return a.reference.localeCompare(b.reference);
             if (a.name !== b.name) return a.name.localeCompare(b.name);
-            if (a.tag === null) return -1;
-            if (b.tag === null) return 1;
-            if (a.tag !== b.tag) return a.tag.localeCompare(b.tag);
+            if (a.tag !== b.tag) return (a.tag ?? '').localeCompare(b.tag ?? '');
 
             return 0;
         });
@@ -62,21 +57,6 @@ const loadLockFile = async (file: string): Promise<Partial<LockFile>> => {
 }
 
 
-export const ensureLockFile = async (file: string) => {
-    if (await exists(file)) return;
-
-    const content = prettyJson(createBlankLockValue());
-
-    console.log({content});
-    
-
-    await Deno.writeTextFile(file, content, {
-        create: true,
-        append: false,
-    });
-}
-
-
 export const isDependencyAlreadyInstalled = async (file: string, dependency: Dependency): Promise<boolean> => {
     const current = await loadLockFile(file);
 
@@ -88,7 +68,9 @@ export const updateLockFile = async (file: string, config: TransformedConfig, ju
     const current = await loadLockFile(file);
     const dependencies = createDependencies(config.dependencies, current?.dependencies ?? [], justInstalled);
 
-    const updated = createBlankLockValue();
+    const updated: LockFile = {
+        dependencies,
+    };
 
     const updatedContent = prettyJson(updated);
     const currentContent = prettyJson(current);
