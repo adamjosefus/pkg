@@ -5,7 +5,7 @@ import * as render from "../utils/render.ts";
 import * as style from "../utils/style.ts";
 import { cloneRepository } from "../model/cloneRepository.ts";
 import { isDependencyAlreadyInstalled, updateLockFile } from "../model/lockFile.ts";
-import { absurd, pipe } from "../../libs/esm/fp-ts/function.ts";
+import { pipe } from "../../libs/esm/fp-ts/function.ts";
 
 
 const renderSummary = (successedCount: number, cachedCount: number, failedCount: number) => {
@@ -25,6 +25,31 @@ const renderSummary = (successedCount: number, cachedCount: number, failedCount:
 }
 
 
+const installDependecy = async (root: string, lockFile: string, dependecy: TransformedConfig['dependencies'][0]) => {
+    const statuses = {
+        chached: 'chached',
+        succeeded: 'succeeded',
+        failed: 'failed',
+    } as const;
+
+    if (await isDependencyAlreadyInstalled(lockFile, dependecy)) return {
+        dependecy,
+        output: undefined,
+        status: statuses.chached
+    }
+
+    const { success, output } = await cloneRepository(root, {
+        reference: dependecy.reference,
+        branch: dependecy.tag,
+        destination: dependecy.absDestination,
+        name: dependecy.name,
+    });
+
+    const status = success ? statuses.succeeded : statuses.failed;
+    return { dependecy, output, status }
+}
+
+
 export const installCommand = async (root: string, config: TransformedConfig, lockFile: string) => {
     // TODO: Check if the dependencies length is 0
     // TODO: Check if the dependencies are already installed
@@ -34,25 +59,10 @@ export const installCommand = async (root: string, config: TransformedConfig, lo
     const waiter = new ProgressBar(config.dependencies.length);
 
     const jobs = config.dependencies.map(async dependecy => {
-        if (await isDependencyAlreadyInstalled(lockFile, dependecy)) {
-            return {
-                dependecy,
-                output: '',
-                status: 'chached' as const
-            }
-        }
-
-        const { success, output } = await cloneRepository(root, {
-            reference: dependecy.reference,
-            branch: dependecy.tag,
-            destination: dependecy.absDestination,
-            name: dependecy.name,
-        });
-
+        const job = await installDependecy(root, lockFile, dependecy);
         waiter.updateProgress(1);
 
-        const status = success ? 'succeeded' : 'failed';
-        return { dependecy, output, status }
+        return job;
     });
 
     await waiter.setTotal(jobs.length).wait();
