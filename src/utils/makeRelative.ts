@@ -3,14 +3,13 @@
  */
 
 import { relative, normalize } from "../../libs/deno_std/path/mod.ts";
+import { pipe } from "../../libs/esm/fp-ts/function.ts";
 
 
-/**
- * If the path is not absolute, make it absolute to the root directory.
- */
-export const makeRelative = (root: string, path: string) => {
-    return normalize(relative(root, path));
-}
+export const makeRelative = (root: string, path: string) => pipe(
+    relative(root, path),
+    normalize,
+);
 
 
 export const makeRelativeTo = (path: string) => (root: string) => makeRelative(root, path);
