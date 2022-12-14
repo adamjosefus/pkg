@@ -7,7 +7,7 @@ import { computeConfigFormat } from "./model/computeConfigFormat.ts";
 import { createConfigLoader } from "./model/createConfigLoader.ts";
 import { getArguments } from "./model/getArguments.ts";
 import { computeLockFilePath } from "./model/computeLockFilePath.ts";
-import { Watcher } from "./utils/Watcher.ts";
+import { UpdateEvent, Watcher } from "./utils/Watcher.ts";
 import { makeAbsolute } from "./utils/makeAbsolute.ts";
 
 
@@ -48,9 +48,13 @@ const packager = async () => {
 
     if (await superWatch()) {
         const config = await loadConfig();
-        const watcher = new Watcher([configFile, lockFile, ...config.filesToWatch]);
+        const watcher = new Watcher(root, [configFile, lockFile, ...config.filesToWatch]);
 
-        watcher.addEventListener("modify", async () => {
+        watcher.addEventListener("update", async (e) => {
+            const event = e as UpdateEvent;
+
+            console.log("update", event.detail.events.length);
+
             await action();
         });
     }

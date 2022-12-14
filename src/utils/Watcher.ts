@@ -1,26 +1,59 @@
-import { filterExistPathSync } from "./filterExistPath.ts";
+import { compareArrays } from "./compareArrays.ts";
+import { makeRelative } from "./makeRelative.ts";
+import { TimeBuffer } from "./TimeBuffer.ts";
+
 
 export class Watcher extends EventTarget {
 
-    readonly #watcher: Deno.FsWatcher;
-    readonly #paths: readonly string[];
+    readonly #root: string;
+    readonly #interestedPaths: readonly string[];
 
-    constructor(path: string | (string | null | undefined)[]) {
+    readonly #watcher: Deno.FsWatcher;
+    readonly #buffer: TimeBuffer<Deno.FsEvent>;
+
+    constructor(root: string, paths: string[]) {
         super();
 
-        this.#paths = Watcher.#normalizePaths(path);
-        this.#watcher = Deno.watchFs(filterExistPathSync(this.#paths), {
+        this.#root = root;
+        this.#interestedPaths = Watcher.#normalizePaths(root, paths);
+
+        this.#watcher = Deno.watchFs(root, {
             recursive: true,
         });
+
+        this.#buffer = new TimeBuffer(10, events => this.#dispatchUpdate(events));
 
         this.#watch();
     }
 
 
+    #dispatchUpdate(events: Deno.FsEvent[]) {
+        const filtered = this.#filterEvents(events);
+        this.dispatchEvent(new UpdateEvent(filtered));
+    }
+
+
     async #watch() {
-        for await (const { kind, paths, flag } of this.#watcher) {
-            this.dispatchEvent(new WatcherEvent(kind, paths, flag));
+        for await (const event of this.#watcher) {
+            this.#buffer.push(event);
         }
+    }
+
+
+    #filterEvents(events: readonly Deno.FsEvent[]): readonly Deno.FsEvent[] {
+        return events
+            .reduceRight((acc, curr, i) => {
+                const prev = events[i - 1] as Deno.FsEvent | undefined;
+
+                const skip = prev !== undefined
+                    && prev.kind === curr.kind
+                    && compareArrays(curr.paths, prev.paths);
+
+                if (!skip) acc.unshift(curr);
+
+                return acc;
+            }, [] as Deno.FsEvent[])
+            .filter(({ paths }) => paths.some(p => this.#interestedPaths.includes(p)));
     }
 
 
@@ -29,22 +62,26 @@ export class Watcher extends EventTarget {
     }
 
 
-    static #normalizePaths(paths: (string | null | undefined)[] | string) {
-        return [paths].flat().filter(s => typeof s === 'string') as string[]
+    static #normalizePaths(root: string, paths: string[]): string[] {
+        return paths
+            .filter(path => {
+                const r = makeRelative(root, path);
+                return !r.startsWith('..');
+            })
+            .filter((path, index, arr) => arr.indexOf(path) === index);
     }
 }
 
 
-export class WatcherEvent extends Event {
+export class UpdateEvent extends CustomEvent<{
+    events: readonly Deno.FsEvent[]
+}> {
 
-    readonly paths: readonly string[];
-    readonly flag: string | undefined;
-
-
-    constructor(type: 'any' | 'access' | 'create' | 'modify' | 'remove' | 'other', paths: string[], flag?: Deno.FsEventFlag) {
-        super(type);
-
-        this.paths = paths;
-        this.flag = flag;
+    constructor(events: readonly Deno.FsEvent[]) {
+        super("update", {
+            detail: {
+                events
+            }
+        });
     }
 }
