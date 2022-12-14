@@ -9,6 +9,7 @@ import { getArguments } from "./model/getArguments.ts";
 import { computeLockFilePath } from "./model/computeLockFilePath.ts";
 import { UpdateEvent, Watcher } from "./utils/Watcher.ts";
 import { makeAbsolute } from "./utils/makeAbsolute.ts";
+import { blankCommand } from "./commands/blankCommand.ts";
 
 
 const packager = async () => {
@@ -32,8 +33,13 @@ const packager = async () => {
 
     const action = async () => {
         const config = await loadConfig();
+
         if (args.install) await installCommand(root, config, lockFile);
         if (args.build) await buildCommand();
+
+        if (!(args.install || args.build)) {
+            await blankCommand();
+        }
     }
 
     const superWatch = async () => {
