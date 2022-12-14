@@ -4,29 +4,61 @@ import { exists } from "../utils/exists.ts";
 import { prettyJson } from "../utils/prettyJson.ts";
 
 
-interface Dependency {
-    reference: string,
-    tag: string | null,
-    name: string,
+type LockDependency = LockFile['dependencies'][number];
+type LockVersion = LockFile['version'];
+
+
+const compareDependencies = (a: LockDependency, b: LockDependency): number => {
+    const reference = a.reference.localeCompare(b.reference);
+    if (reference !== 0) return reference;
+
+    if (a.tag === null && b.tag === null) return 0;
+    if (a.tag === null) return -1;
+    if (b.tag === null) return 1;
+
+    const tag = a.tag.localeCompare(b.tag);
+    if (tag !== 0) return tag;
+
+    return a.name.localeCompare(b.name);
 }
 
-const createBlankLockValue = () => ({}) as const;
+
+const areDependenciesSame = (a: LockDependency, b: LockDependency) => compareDependencies(a, b) === 0;
 
 
-const isDependencySame = (a: Dependency, b: Dependency) => {
-    if (a.reference !== b.reference) return false;
-    if (a.tag !== b.tag) return false;
-    if (a.name !== b.name) return false;
+const compareVersions = (a: LockVersion, b: LockVersion): number => {
+    if (a.major !== b.major) return a.major - b.major;
+    if (a.minor !== b.minor) return a.minor - b.minor;
+    if (a.patch !== b.patch) return a.patch - b.patch;
+
+    if (a.flag === undefined && b.flag === undefined) return 0;
+    if (a.flag === undefined) return -1;
+    if (b.flag === undefined) return 1;
+
+    return a.flag.localeCompare(b.flag);
+}
+
+const areVersionsSame = (a: LockVersion, b: LockVersion) => compareVersions(a, b) === 0;
+
+
+const areLocksSame = (a: LockFile, b: LockFile) => {
+    if (!areVersionsSame(a.version, b.version)) return false;
+    if (a.dependencies.length !== b.dependencies.length) return false;
+
+    for (let i = 0; i < a.dependencies.length; i++) {
+        if (!areDependenciesSame(a.dependencies[i], b.dependencies[i])) return false;
+    }
 
     return true;
 }
 
 
-export const createDependencies = (configDependencies: TransformedConfig['dependencies'], lockedDependencies: LockFile['dependencies'], installedDependencies: TransformedConfig['dependencies']): LockFile['dependencies'] => {
-    return lockedDependencies
-        .filter(x => !configDependencies.some(y => isDependencySame(x, y))) // Filter out dependencies that are not in the config anymore
-        .filter(x => !installedDependencies.some(y => isDependencySame(x, y))) // Filter out dependencies that are freshly installed
-        .concat(installedDependencies) // Append freshly installed dependencies
+
+export const createDependencies = (fromConfig: TransformedConfig['dependencies'], fromLock: LockFile['dependencies'], installed: TransformedConfig['dependencies']): LockFile['dependencies'] => {
+    return fromLock
+        .filter(x => !fromConfig.some(y => areDependenciesSame(x, y))) // Filter out dependencies that are not in the config anymore
+        .filter(x => !installed.some(y => areDependenciesSame(x, y))) // Filter out dependencies that are freshly installed
+        .concat(installed) // Append freshly installed dependencies
         .map(({ reference, tag, name }) => ({ reference, tag, name })) // Make sure that the dependencies are not mutated. This is important for the lock file to be deterministic
         .sort((a, b) => { // Sort dependencies by reference, name and tag, so that the lock file is deterministic
             if (a.reference !== b.reference) return a.reference.localeCompare(b.reference);
@@ -38,18 +70,18 @@ export const createDependencies = (configDependencies: TransformedConfig['depend
 }
 
 
-const loadLockFile = async (file: string): Promise<Partial<LockFile>> => {
+const loadLockFile = async (file: string): Promise<LockFile | undefined> => {
     try {
         const content = await Deno.readTextFile(file);
 
         try {
             return JSON.parse(content);
         } catch (_err) {
-            return createBlankLockValue();
+            return undefined;
         }
     } catch (err) {
         if (err instanceof Deno.errors.NotFound) {
-            return createBlankLockValue();
+            return undefined;
         }
 
         throw err;
@@ -57,10 +89,10 @@ const loadLockFile = async (file: string): Promise<Partial<LockFile>> => {
 }
 
 
-export const isDependencyAlreadyInstalled = async (file: string, dependency: Dependency): Promise<boolean> => {
-    const current = await loadLockFile(file);
+export const isAlreadyInstalled = async (file: string, dependency: LockDependency): Promise<boolean> => {
+    const locked = await loadLockFile(file);
 
-    return (current?.dependencies ?? []).some(x => isDependencySame(x, dependency));
+    return (locked?.dependencies ?? []).some(d => areDependenciesSame(d, dependency));
 }
 
 
@@ -72,10 +104,8 @@ export const updateLockFile = async (file: string, config: TransformedConfig, ju
         dependencies,
     };
 
-    const updatedContent = prettyJson(updated);
-    const currentContent = prettyJson(current);
 
-    const shouldUpdate = updatedContent !== currentContent;
+    const shouldUpdate = current === undefined || !areLocksSame(current, updated);
 
     if (shouldUpdate) {
         await Deno.writeTextFile(file, prettyJson(updated), {
