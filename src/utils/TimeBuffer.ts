@@ -1,18 +1,18 @@
 export class TimeBuffer<T> {
     readonly #time: number;
     readonly #callback: (items: T[]) => void;
-    readonly #events: T[] = [];
+    readonly #items: T[] = [];
 
     #timerId: number | undefined;
 
-    constructor(timer: number, callback: (events: T[]) => void) {
+    constructor(timer: number, callback: (items: T[]) => void) {
         this.#time = timer;
         this.#callback = callback;
     }
 
 
     push(item: T) {
-        this.#events.push(item);
+        this.#items.push(item);
 
         if (this.#timerId) {
             clearTimeout(this.#timerId);
@@ -20,8 +20,8 @@ export class TimeBuffer<T> {
 
         this.#timerId = setTimeout(() => {
             this.#timerId = undefined;
-            this.#callback([...this.#events]);
-            this.#events.splice(0, this.#events.length);
+            this.#callback([...this.#items]);
+            this.#items.splice(0, this.#items.length);
         }, this.#time);
     }
 }
