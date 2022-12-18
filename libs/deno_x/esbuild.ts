@@ -1,1 +1,1 @@
-export * from "https://deno.land/x/esbuild@v0.15.16/wasm.js";
+export * from "https://deno.land/x/esbuild@v0.16.7/wasm.js";
