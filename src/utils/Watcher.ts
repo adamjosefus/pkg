@@ -21,7 +21,7 @@ export class Watcher extends EventTarget {
             recursive: true,
         });
 
-        this.#buffer = new TimeBuffer(10, events => this.#dispatchUpdate(events));
+        this.#buffer = new TimeBuffer(15, events => this.#dispatchUpdate(events));
 
         this.#watch();
     }
@@ -40,20 +40,15 @@ export class Watcher extends EventTarget {
     }
 
 
-    #filterEvents(events: readonly Deno.FsEvent[]): readonly Deno.FsEvent[] {
+    #filterEvents(events: readonly Deno.FsEvent[]): readonly string[] {
         return events
-            .reduceRight((acc, curr, i) => {
-                const prev = events[i - 1] as Deno.FsEvent | undefined;
-
-                const skip = prev !== undefined
-                    && prev.kind === curr.kind
-                    && compareArrays(curr.paths, prev.paths);
-
-                if (!skip) acc.unshift(curr);
+            .map(({ paths }) => paths)
+            .reduce((acc, paths) => {                
+                paths.forEach(p => acc.includes(p) || acc.push(p))
 
                 return acc;
-            }, [] as Deno.FsEvent[])
-            .filter(({ paths }) => paths.some(p => this.#interestedPaths.includes(p)));
+            }, [] as string[])
+            .filter(path => this.#interestedPaths.includes(path));
     }
 
 
@@ -74,13 +69,13 @@ export class Watcher extends EventTarget {
 
 
 export class UpdateEvent extends CustomEvent<{
-    events: readonly Deno.FsEvent[]
+    paths: readonly string[]
 }> {
 
-    constructor(events: readonly Deno.FsEvent[]) {
+    constructor(paths: readonly string[]) {
         super("update", {
             detail: {
-                events
+                paths
             }
         });
     }

@@ -5,8 +5,10 @@ import { globToPaths } from "../utils/globToPaths.ts";
 import { makeAbsolute } from "../utils/makeAbsolute.ts";
 import { parseVersion } from "../utils/parseVersion.ts";
 import { uniqueArray } from "../utils/uniqueArray.ts";
+import { formatVersion } from "../utils/formatVersion.ts";
 import { createBuildOptions } from "./createBuildOptions.ts";
 import { loadAccessTokenValueSync } from "./loadAccessTokenValue.ts";
+import * as settings from "../../settings.ts";
 
 
 const dependecyNameParser = /\/(?<name>[^\/]+?)(\.git)?$/gi;
@@ -119,7 +121,7 @@ export const transformConfig = async (config: Config, root: string): Promise<Tra
         exclude: [root],
     }
 
-    const version = parseVersion(config.version ?? '');
+    const version = parseVersion(config.version ?? formatVersion(settings.version));
     const watch = config.watch ?? false;
     const absOutDir = makeAbsolute(root, config.outDir ?? defaults.outDir);
     const absSourceDir = makeAbsolute(root, config.sourceDir ?? defaults.sourceDir);

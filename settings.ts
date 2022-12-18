@@ -1,4 +1,4 @@
-import { Version } from "./types.ts";
+import { Version } from "./src/types.ts";
 
 export const version: Version<3> = {
     major: 3,

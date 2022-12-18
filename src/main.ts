@@ -58,9 +58,7 @@ const packager = async () => {
 
         watcher.addEventListener("update", async (e) => {
             const event = e as UpdateEvent;
-
-            console.log("update", event.detail.events.length);
-
+            console.log(event.detail.events);
             await action();
         });
     }

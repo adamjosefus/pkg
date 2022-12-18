@@ -101,11 +101,18 @@ export const updateLockFile = async (file: string, config: TransformedConfig, ju
     const dependencies = createDependencies(config.dependencies, current?.dependencies ?? [], justInstalled);
 
     const updated: LockFile = {
+        version: config.version,
         dependencies,
     };
 
 
-    const shouldUpdate = current === undefined || !areLocksSame(current, updated);
+    const shouldUpdate = current === undefined || (() => {
+        try {
+            return !areLocksSame(current, updated);
+        } catch (_err) {
+            return true;
+        }
+    })();
 
     if (shouldUpdate) {
         await Deno.writeTextFile(file, prettyJson(updated), {

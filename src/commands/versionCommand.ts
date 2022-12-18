@@ -1,7 +1,7 @@
 import * as styles from "../../libs/deno_std/fmt/colors.ts";
 import { InfoInterruption } from "../../libs/deno_x/allo_arguments.ts";
 import { formatVersion } from "../utils/formatVersion.ts";
-import * as settings from "../settings.ts";
+import * as settings from "../../settings.ts";
 
 
 export const versionCommand = () => {

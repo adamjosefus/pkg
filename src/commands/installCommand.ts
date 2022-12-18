@@ -4,7 +4,7 @@ import { mapArrayToValues } from "../utils/mapArrayToValues.ts";
 import * as render from "../utils/render.ts";
 import * as style from "../utils/style.ts";
 import { cloneRepository } from "../model/cloneRepository.ts";
-import { isDependencyAlreadyInstalled, updateLockFile } from "../model/lockFile.ts";
+import { isAlreadyInstalled, updateLockFile } from "../model/lockFile.ts";
 import { pipe } from "../../libs/esm/fp-ts/function.ts";
 
 
@@ -25,14 +25,18 @@ const renderSummary = (successedCount: number, cachedCount: number, failedCount:
 }
 
 
-const installDependecy = async (root: string, lockFile: string, dependecy: TransformedConfig['dependencies'][0]) => {
+const installDependecy = async (root: string, lockFile: string, dependecy: TransformedConfig['dependencies'][0]): Promise<{
+    dependecy: typeof dependecy,
+    output: string | undefined,
+    status: "succeeded" | "failed" | "chached",
+}> => {
     const statuses = {
         chached: 'chached',
         succeeded: 'succeeded',
         failed: 'failed',
     } as const;
 
-    if (await isDependencyAlreadyInstalled(lockFile, dependecy)) return {
+    if (await isAlreadyInstalled(lockFile, dependecy)) return {
         dependecy,
         output: undefined,
         status: statuses.chached
@@ -82,8 +86,7 @@ export const installCommand = async (root: string, config: TransformedConfig, lo
         render.emptyLine();
 
         pipe(
-            failed,
-            mapArrayToValues('output'),
+            failed.map(({ output }) => output).filter(s => s !== undefined) as string[],
             render.cliErrorOutputs,
         );
     } else {

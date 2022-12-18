@@ -80,3 +80,10 @@ export const commandTitle = (title: string) => {
         c.bgRgb24(0x002255),
     ));
 }
+
+
+export const clear = (full = false) => {
+    Deno.stdout.write(
+        new TextEncoder().encode(full ? "\x1b[2J" : "\x1b[0f"),
+    );
+}
